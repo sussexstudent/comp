@@ -1,0 +1,34 @@
+{
+  "name": "@ussu/comp",
+  "version": "0.3.0",
+  "main": "lib/index.js",
+  "repository": "https://github.com/sussexstudent/comp",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-async-generator-functions": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-preset-env": "^1.5.1"
+  },
+  "scripts": {
+    "dev": "`yarn bin`/babel src --out-dir lib --watch"
+  },
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "chokidar": "^1.7.0",
+    "copy-paste": "^1.3.0",
+    "express": "^4.15.3",
+    "fs-extra": "^3.0.1",
+    "git-rev": "^0.2.1",
+    "jsdom": "^11.0.0",
+    "lodash": "^4.17.4",
+    "node-fetch": "next",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "react-tree-walker": "^2.1.1"
+  },
+  "peerDependencies": {
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4"
+  }
+}
