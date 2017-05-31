@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import { getContentIdsFromTrees } from './contentAPI';
+import {
+  getContentForElement,
+  getContentForElements,
+} from './generator/contentAPI';
+import * as ui from "./generator/ui";
 
 function createRenderBase(contentAPIStore) {
   class RenderBase extends React.Component {
@@ -11,7 +15,8 @@ function createRenderBase(contentAPIStore) {
     }
 
     render() {
-      return React.createElement('div', {}, this.props.children);
+      return this.props.children;
+      //return React.createElement('div', {}, this.props.children);
     }
   }
 
@@ -22,15 +27,13 @@ function createRenderBase(contentAPIStore) {
   return RenderBase;
 }
 
-export const render = (Element, other = {}, context = {}) => {
-  if (other.inject) {
-    global.mslInject = other.inject;
-  }
-  const RenderBase = createRenderBase(context.store);
+function render(Component, props, remoteStore) {
+  const RenderBase = createRenderBase(remoteStore);
+
   return ReactDOM.renderToStaticMarkup(
-    React.createElement(RenderBase, {}, React.createElement(Element, other))
+    React.createElement(RenderBase, {}, React.createElement(Component, props))
   );
-};
+}
 
 export const renderHtml = (Html, children, assets, other = {}) => {
   if (other.inject) {
@@ -41,6 +44,14 @@ export const renderHtml = (Html, children, assets, other = {}) => {
     React.createElement(Html, { assets: assets }, children)
   ).replace('{head_content}', '');
 };
+
+
+export async function renderComponent(Component, props = {}) {
+  const remoteStore = await getContentForElement(
+    React.createElement(Component, props)
+  );
+  return render(Component, props, remoteStore);
+}
 
 export function renderTemplates(templates, assets) {
   const renderedTemplates = {};
@@ -62,25 +73,32 @@ export function renderTemplates(templates, assets) {
   return renderedTemplates;
 }
 
-export function renderPages(pages) {
+function filterStoreForRequests(store, requests) {
+  const filteredStore = {};
+
+  requests.forEach(request => filteredStore[request] = store[request]);
+
+  return filteredStore;
+}
+
+export async function renderComponents(pages) {
   const renderedPages = {};
 
-  const trees = Object.keys(pages).map(pageName => {
+  const componentNames = Object.keys(pages);
+  const asElements = componentNames.map(pageName => {
     return React.createElement(pages[pageName]);
   });
 
-  return getContentIdsFromTrees(trees)
-    .then(store => {
-      Object.keys(pages).forEach(pageName => {
-        renderedPages[pageName] = {
-          name: pageName,
-          content: render(pages[pageName], {}, { store }),
-        };
-      });
+  const [requests, store] = await getContentForElements(asElements);
+  const done = ui.renderingComponents();
+  componentNames.forEach((pageName, index) => {
+    renderedPages[pageName] = {
+      name: pageName,
+      content: render(pages[pageName], {}, filterStoreForRequests(store, requests[index])),
+    };
+  });
 
-      return renderedPages;
-    })
-    .catch(err => {
-      throw err;
-    });
+  done();
+
+  return renderedPages;
 }

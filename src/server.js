@@ -1,11 +1,10 @@
-import path from 'path';
 import React from 'react';
 import express from 'express';
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 import chokidar from 'chokidar';
-import { render, renderHtml } from './generator/rendering';
-import { getContentForElement } from './generator/contentAPI';
+import { renderHtml, renderComponent } from './renderer';
+import {getPageComponentFromConf, loadCompfile} from "./compfile";
 
 const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
 
@@ -54,18 +53,14 @@ function handleTemplaing(conf, html) {
   );
 }
 
-function getPageComponentFromConf(conf, componentPath) {
-  return require(path.join(conf.root, conf.pages[componentPath])).default;
-}
-
 function loadFromLocal(conf, req, res) {
   const pages = conf.pages;
   const path = req.url.slice(2);
 
   if (Object.hasOwnProperty.call(pages, path)) {
     const PageComponent = getPageComponentFromConf(conf, path);
-    const Main = conf.templates.main.templatePublic;
-    getContentForElement(PageComponent).then(contentAPIStore => {
+    renderComponent(PageComponent).then(componentString => {
+      const Main = conf.templates.main.templatePublic;
       const page = renderHtml(
         conf.html,
         React.createElement(Main, {
@@ -75,11 +70,7 @@ function loadFromLocal(conf, req, res) {
         localAssetsStub,
         {
           inject: {
-            Content: render(
-              getPageComponentFromConf(conf, path),
-              {},
-              { store: contentAPIStore }
-            ),
+            Content: componentString,
           },
         }
       );
@@ -113,17 +104,18 @@ function loadFromSite(conf, req, res) {
     .catch(e => console.log(e));
 }
 
-function createServer(conf) {
+function createServer(compfile) {
   watchAndClearCache();
 
   const server = express();
 
-  server.get('/~/:page(*)', loadFromLocal.bind({}, conf));
-  server.get('/*', loadFromSite.bind({}, conf));
+  server.get('/~/:page(*)', loadFromLocal.bind({}, compfile));
+  server.get('/*', loadFromSite.bind({}, compfile));
 
   return server;
 }
 
-export default function compMiddleware(conf) {
-  return createServer(conf);
+export default function compMiddleware() {
+  const compfile = loadCompfile();
+  return createServer(compfile);
 }

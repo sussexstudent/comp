@@ -1,10 +1,9 @@
 import React from 'react';
 import reactTreeWalker from 'react-tree-walker';
+import flatten from 'lodash/flatten';
 import * as ui from './ui';
 
 function createContentStore(promises) {
-  ui.finishedLoadFromContentAPI();
-
   const m = {};
   promises.forEach(doc => {
     m[doc.id] = doc;
@@ -14,7 +13,7 @@ function createContentStore(promises) {
 }
 
 export function contentAPILoadAll(ids) {
-  ui.startedLoadFromContentAPI(ids.length);
+  const done = ui.loadingFalmerContent(ids.length);
   const pages = ids.map(id =>
     fetch(`https://falmer.sussexstudent.com/content-api/v2/pages/${id}/`)
       .then(data => data.json())
@@ -22,10 +21,15 @@ export function contentAPILoadAll(ids) {
         return data;
       })
   );
-  return Promise.all(pages).then(createContentStore);
+  return Promise.all(pages)
+    .then(content => {
+      done();
+      return content;
+    })
+    .then(createContentStore);
 }
 
-export function getContentIdsFromTrees(trees) {
+export function getContentIdsFromElement(element) {
   const pageIds = [];
   function visitor(element, instance, context) {
     if (instance && Object.hasOwnProperty.call(instance, 'getPageId')) {
@@ -34,17 +38,24 @@ export function getContentIdsFromTrees(trees) {
     return true;
   }
 
-  const waiting = trees.map(tree => reactTreeWalker(tree, visitor));
-
-  return Promise.all(waiting).then(() => {
+  return reactTreeWalker(element, visitor).then(() => {
     process.env['HYDROLEAF_MODE'] = 'RENDER_STRING';
     return pageIds;
   });
 }
 
-export function getContentForElement(component) {
+export function getContentForElement(element) {
   process.env['HYDROLEAF_MODE'] = 'RENDER_COMPONENT';
-  return getContentIdsFromTrees([React.createElement(component)]).then(
-    contentAPILoadAll
+  return getContentIdsFromElement(element).then(contentAPILoadAll);
+}
+
+export async function getContentForElements(elements) {
+  process.env['HYDROLEAF_MODE'] = 'RENDER_COMPONENT';
+
+  const requests = await Promise.all(
+    elements.map(el => getContentIdsFromElement(el))
   );
+  const store = await contentAPILoadAll(flatten(requests));
+
+  return [requests, store];
 }

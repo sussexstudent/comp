@@ -32,23 +32,32 @@ export function renderDifferencesList(differences) {
   });
 }
 
-export function startedLoadFromContentAPI(count) {
-  process.stdout.write(
-    chalk.white(`loading ${count} documents from falmer contentAPI... `)
-  );
-}
-
-export function finishedLoadFromContentAPI(count) {
-  console.log(`${chalk.green('done')}`);
-}
-
 function createTwoStepMessage(msgGen) {
   return (...args) => {
     process.stdout.write(msgGen(...args));
     return () => {
       console.log(`${chalk.green('done')}`);
-    }
-  }
+    };
+  };
 }
 
-export const savingState = createTwoStepMessage(() => chalk.white(`saving state file... `));
+export const loadingFalmerContent = createTwoStepMessage(count =>
+  chalk.white(`loading ${count} documents from falmer contentAPI... `)
+);
+
+export const savingState = createTwoStepMessage(() =>
+  chalk.white(`saving state file... `)
+
+);
+
+export const renderingComponents = createTwoStepMessage(() =>
+  chalk.white(`rendering components to markup... `)
+);
+
+export function compTag() {
+  console.log(chalk.bold.white('comp'));
+}
+
+export function missingCompfile() {
+  console.log(chalk.red(`Can't find compfile.js here!`));
+}
