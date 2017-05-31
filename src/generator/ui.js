@@ -47,7 +47,6 @@ export const loadingFalmerContent = createTwoStepMessage(count =>
 
 export const savingState = createTwoStepMessage(() =>
   chalk.white(`saving state file... `)
-
 );
 
 export const renderingComponents = createTwoStepMessage(() =>

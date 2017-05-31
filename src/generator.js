@@ -4,9 +4,9 @@ import git from 'git-rev';
 import ncp from 'copy-paste';
 import * as ui from './generator/ui';
 import { createChangesGenerator } from './generator/changes';
-import {findDirtyComponents, loadSnapshot, saveSnapshot} from './state';
+import { findDirtyComponents, loadSnapshot, saveSnapshot } from './state';
 import { renderComponents, renderTemplates } from './renderer';
-import {loadCompfile, resolveAllPages} from "./compfile";
+import { loadCompfile, resolveAllPages } from './compfile';
 
 function differencesUI(differences, next) {
   // exit if nothing
@@ -56,7 +56,7 @@ function differencesUI(differences, next) {
 }
 
 export default async function() {
-  git.long(async (gitRev) => {
+  git.long(async gitRev => {
     ui.compTag();
 
     let compfile;
@@ -76,7 +76,10 @@ export default async function() {
 
     const staleSnapshot = await loadSnapshot();
 
-    const differences = findDirtyComponents({ pages, templates }, staleSnapshot);
+    const differences = findDirtyComponents(
+      { pages, templates },
+      staleSnapshot
+    );
 
     differencesUI(differences, { pages, templates });
   });

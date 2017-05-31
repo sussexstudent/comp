@@ -4,7 +4,7 @@ import {
   getContentForElement,
   getContentForElements,
 } from './generator/contentAPI';
-import * as ui from "./generator/ui";
+import * as ui from './generator/ui';
 
 function createRenderBase(contentAPIStore) {
   class RenderBase extends React.Component {
@@ -45,7 +45,6 @@ export const renderHtml = (Html, children, assets, other = {}) => {
   ).replace('{head_content}', '');
 };
 
-
 export async function renderComponent(Component, props = {}) {
   const remoteStore = await getContentForElement(
     React.createElement(Component, props)
@@ -76,7 +75,7 @@ export function renderTemplates(templates, assets) {
 function filterStoreForRequests(store, requests) {
   const filteredStore = {};
 
-  requests.forEach(request => filteredStore[request] = store[request]);
+  requests.forEach(request => (filteredStore[request] = store[request]));
 
   return filteredStore;
 }
@@ -94,7 +93,11 @@ export async function renderComponents(pages) {
   componentNames.forEach((pageName, index) => {
     renderedPages[pageName] = {
       name: pageName,
-      content: render(pages[pageName], {}, filterStoreForRequests(store, requests[index])),
+      content: render(
+        pages[pageName],
+        {},
+        filterStoreForRequests(store, requests[index])
+      ),
     };
   });
 

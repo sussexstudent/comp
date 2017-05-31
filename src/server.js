@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 import chokidar from 'chokidar';
 import { renderHtml, renderComponent } from './renderer';
-import {getPageComponentFromConf, loadCompfile} from "./compfile";
+import { getPageComponentFromConf, loadCompfile } from './compfile';
 
 const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
 
