@@ -1,22 +1,29 @@
+import path from 'path';
 import React from 'react';
 import express from 'express';
 import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 import chokidar from 'chokidar';
 import { render, renderHtml } from './generator/rendering';
+import { getContentForElement } from './generator/contentAPI';
+
+const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
+
+function clearRequireCache() {
+  Object.keys(require.cache).forEach(module => {
+    if (moduleDetectRegEx.test(require.cache[module].filename)) {
+      console.log(`deleting ${require.cache[module].filename}`);
+      delete require.cache[module];
+    }
+  });
+}
 
 function watchAndClearCache() {
-  const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
   chokidar
     .watch(['./generator/layouts', './generator/components'])
     .on('change', () => {
       console.log('updated!');
-      Object.keys(require.cache).forEach(module => {
-        if (moduleDetectRegEx.test(require.cache[module].filename)) {
-          console.log(`deleting ${require.cache[module].filename}`);
-          delete require.cache[module];
-        }
-      });
+      clearRequireCache();
     });
 }
 
@@ -37,25 +44,47 @@ function handleTemplaing(conf, html) {
   const { window } = new jsdom.JSDOM(html);
   const pageContentHTML = window.document.querySelector('main .Container');
   const Main = conf.templates.main.templatePublic;
-  return renderHtml(conf.html, React.createElement(Main, { assets: localAssetsStub}), localAssetsStub, {
-    inject: { Content: pageContentHTML ? pageContentHTML.innerHTML : html },
-  });
+  return renderHtml(
+    conf.html,
+    React.createElement(Main, { assets: localAssetsStub }),
+    localAssetsStub,
+    {
+      inject: { Content: pageContentHTML ? pageContentHTML.innerHTML : html },
+    }
+  );
+}
+
+function getPageComponentFromConf(conf, componentPath) {
+  return require(path.join(conf.root, conf.pages[componentPath])).default;
 }
 
 function loadFromLocal(conf, req, res) {
   const pages = conf.pages;
-  if (Object.hasOwnProperty.call(pages, req.params.page)) {
+  const path = req.url.slice(2);
+
+  if (Object.hasOwnProperty.call(pages, path)) {
+    const PageComponent = getPageComponentFromConf(conf, path);
     const Main = conf.templates.main.templatePublic;
-    const page = renderHtml(
-      conf.html,
-      React.createElement(Main, {
-        assets: localAssetsStub,
-        loggedIn: Object.hasOwnProperty.call(req.query, 'auth')
-      }),
-      localAssetsStub,
-      { inject: { Content: render(pages[req.params.page]) } }
-    );
-    res.send(page);
+    getContentForElement(PageComponent).then(contentAPIStore => {
+      const page = renderHtml(
+        conf.html,
+        React.createElement(Main, {
+          assets: localAssetsStub,
+          loggedIn: Object.hasOwnProperty.call(req.query, 'auth'),
+        }),
+        localAssetsStub,
+        {
+          inject: {
+            Content: render(
+              getPageComponentFromConf(conf, path),
+              {},
+              { store: contentAPIStore }
+            ),
+          },
+        }
+      );
+      res.send(page);
+    });
   } else {
     res.status(404);
     res.send('404 ~ Not found.');
@@ -85,6 +114,8 @@ function loadFromSite(conf, req, res) {
 }
 
 function createServer(conf) {
+  watchAndClearCache();
+
   const server = express();
 
   server.get('/~/:page(*)', loadFromLocal.bind({}, conf));
@@ -94,6 +125,5 @@ function createServer(conf) {
 }
 
 export default function compMiddleware(conf) {
-  watchAndClearCache();
   return createServer(conf);
 }

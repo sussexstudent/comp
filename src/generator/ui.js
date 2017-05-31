@@ -33,9 +33,22 @@ export function renderDifferencesList(differences) {
 }
 
 export function startedLoadFromContentAPI(count) {
-  process.stdout.write(chalk.white(`loading ${count} documents from falmer contentAPI... `))
+  process.stdout.write(
+    chalk.white(`loading ${count} documents from falmer contentAPI... `)
+  );
 }
 
 export function finishedLoadFromContentAPI(count) {
-  console.log(`${chalk.green('done')}`)
+  console.log(`${chalk.green('done')}`);
 }
+
+function createTwoStepMessage(msgGen) {
+  return (...args) => {
+    process.stdout.write(msgGen(...args));
+    return () => {
+      console.log(`${chalk.green('done')}`);
+    }
+  }
+}
+
+export const savingState = createTwoStepMessage(() => chalk.white(`saving state file... `));

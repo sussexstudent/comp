@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import reactTreeWalker from 'react-tree-walker';
-import * as ui from './ui';
+import { getContentIdsFromTrees } from './contentAPI';
 
 function createRenderBase(contentAPIStore) {
   class RenderBase extends React.Component {
@@ -20,10 +19,8 @@ function createRenderBase(contentAPIStore) {
     contentAPI: React.PropTypes.object.isRequired,
   };
 
-
   return RenderBase;
 }
-
 
 export const render = (Element, other = {}, context = {}) => {
   if (other.inject) {
@@ -31,9 +28,7 @@ export const render = (Element, other = {}, context = {}) => {
   }
   const RenderBase = createRenderBase(context.store);
   return ReactDOM.renderToStaticMarkup(
-    React.createElement(RenderBase, {},
-      React.createElement(Element, other)
-    )
+    React.createElement(RenderBase, {}, React.createElement(Element, other))
   );
 };
 
@@ -43,7 +38,7 @@ export const renderHtml = (Html, children, assets, other = {}) => {
   }
 
   return ReactDOM.renderToStaticMarkup(
-    React.createElement(Html, {assets: assets}, children)
+    React.createElement(Html, { assets: assets }, children)
   ).replace('{head_content}', '');
 };
 
@@ -67,47 +62,14 @@ export function renderTemplates(templates, assets) {
   return renderedTemplates;
 }
 
-function contentAPILoadAll(ids) {
-  const pages = ids.map(id =>
-    fetch(
-      `https://falmer.sussexstudent.com/content-api/v2/pages/${id}/`
-    ).then(data => data.json()).then(data => {
-      return data;
-    })
-  );
-  return Promise.all(pages);
-}
-
 export function renderPages(pages) {
   const renderedPages = {};
-  const pageIds = [];
 
-  function visitor(element, instance, context) {
-    if (instance && Object.hasOwnProperty.call(instance, 'getPageId')) {
-      pageIds.push(instance.getPageId());
-    }
-    return true;
-  }
-
-  const waiting = Object.keys(pages).map(pageName => {
-    return reactTreeWalker(React.createElement(pages[pageName]), visitor);
+  const trees = Object.keys(pages).map(pageName => {
+    return React.createElement(pages[pageName]);
   });
 
-  return Promise.all(waiting)
-    .then(() => {
-      ui.startedLoadFromContentAPI(pageIds.length);
-      return contentAPILoadAll(pageIds);
-    })
-    .then(res => {
-      ui.finishedLoadFromContentAPI();
-
-      const m = {};
-      res.forEach(doc => {
-        m[doc.id] = doc;
-      });
-
-      return m;
-    })
+  return getContentIdsFromTrees(trees)
     .then(store => {
       Object.keys(pages).forEach(pageName => {
         renderedPages[pageName] = {

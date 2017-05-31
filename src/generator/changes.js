@@ -29,7 +29,6 @@ function* getTemplateChanges(differences, renders) {
 
 function* getPageChanges(differences, renders) {
   for (const page of differences.dirtyPages) {
-    console.log(page);
     yield { type: 'page', name: page, content: renders.pages[page].content };
   }
 }

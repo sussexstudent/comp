@@ -1,4 +1,3 @@
-import fs from 'fs-extra';
 import throttle from 'lodash/throttle';
 import isObject from 'lodash/isObject';
 import chalk from 'chalk';
@@ -7,7 +6,6 @@ import ncp from 'copy-paste';
 import * as ui from './generator/ui';
 import { createChangesGenerator } from './generator/changes';
 import { renderTemplates, renderPages } from './generator/rendering';
-
 
 function doDiff(next, previous) {
   const dirtyTemplates = [];
@@ -47,20 +45,6 @@ function doDiff(next, previous) {
   return { dirtyTemplates, dirtyPages };
 }
 
-function saveState(state) {
-  return fs.writeJson('./previous.json', state);
-}
-
-function getStaleStateSnapshot() {
-  return fs.readJson('./previous.json')
-    .then(snapshot => {
-      return { templates: {}, pages: {}, ...snapshot };
-    })
-  .catch(err => {
-    return { templates: {}, pages: {} };
-  });
-}
-
 async function runGenerator(next) {
   const staleSnapshot = await getStaleStateSnapshot();
   const differences = doDiff(next, staleSnapshot);
@@ -88,14 +72,13 @@ async function runGenerator(next) {
       const change = changes.next();
       if (change && change.done) {
         console.log('All done!');
-        saveState(next)
-          .then(() => {
-            console.log(chalk.green('Saved to state file. 👍'));
-            process.exit(0);
-          });
+        saveState(next).then(() => {
+          console.log(chalk.green('Saved to state file. 👍'));
+          process.exit(0);
+        });
       }
 
-      const {type, name, part, content} = change.value;
+      const { type, name, part, content } = change.value;
       ncp.copy(content, () => {
         if (type === 'template') {
           console.log(
@@ -116,7 +99,7 @@ async function runGenerator(next) {
   differencesUI();
 }
 
-export default function(config){
+export default function(config) {
   git.long(gitRev => {
     config.assets.gitRev = gitRev;
 
@@ -124,9 +107,8 @@ export default function(config){
     Promise.all([
       renderPages(config.pages, config.assets),
       renderTemplates(config.templates, config.assets),
-    ])
-      .then(([ pages, templates ]) => {
-        return runGenerator({ pages, templates });
-      });
+    ]).then(([pages, templates]) => {
+      return runGenerator({ pages, templates });
+    });
   });
 }
