@@ -27,9 +27,18 @@ function createRenderBase(contentAPIStore) {
   return RenderBase;
 }
 
-function render(Component, props, remoteStore) {
+export const RENDER_MODE = {
+  PASSTHROUGH: 'RENDER_COMPONENT',
+  SERIALIZE: 'RENDER_STRING',
+};
+
+function render(Component, props, remoteStore, hydroLeafRenderMode = null) {
+  if (hydroLeafRenderMode === null) {
+    throw new Error('No HydroLeaf rendering mode set!');
+  }
   const RenderBase = createRenderBase(remoteStore);
 
+  process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
   return ReactDOM.renderToStaticMarkup(
     React.createElement(RenderBase, {}, React.createElement(Component, props))
   );
@@ -49,7 +58,7 @@ export async function renderComponent(Component, props = {}) {
   const remoteStore = await getContentForElement(
     React.createElement(Component, props)
   );
-  return render(Component, props, remoteStore);
+  return render(Component, props, remoteStore, RENDER_MODE.SERIALIZE);
 }
 
 export function renderTemplates(templates, assets) {
@@ -61,11 +70,11 @@ export function renderTemplates(templates, assets) {
       templateLoggedIn: render(templates[templateName].templateLoggedIn, {
         assets,
         loggedIn: true,
-      }),
+      }, {}, RENDER_MODE.SERIALIZE),
       templatePublic: render(templates[templateName].templatePublic, {
         assets,
         loggedIn: false,
-      }),
+      }, {}, RENDER_MODE.SERIALIZE),
     };
   });
 
@@ -96,7 +105,8 @@ export async function renderComponents(pages) {
       content: render(
         pages[pageName],
         {},
-        filterStoreForRequests(store, requests[index])
+        filterStoreForRequests(store, requests[index]),
+        RENDER_MODE.SERIALIZE,
       ),
     };
   });

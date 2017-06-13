@@ -6,7 +6,7 @@ import * as ui from './generator/ui';
 import { createChangesGenerator } from './generator/changes';
 import { findDirtyComponents, loadSnapshot, saveSnapshot } from './state';
 import { renderComponents, renderTemplates } from './renderer';
-import { loadCompfile, resolveAllPages } from './compfile';
+import { loadCompfile, resolveAllPages, resolveAllTemplates } from './compfile';
 
 function differencesUI(differences, next) {
   // exit if nothing
@@ -56,6 +56,7 @@ function differencesUI(differences, next) {
 }
 
 export default async function() {
+  process.env['HYDROLEAF_MODE'] = 'RENDER_STRING';
   git.long(async gitRev => {
     ui.compTag();
 
@@ -68,12 +69,14 @@ export default async function() {
     }
 
     compfile.assets.gitRev = gitRev;
-
-    const [pages, templates] = await Promise.all([
-      renderComponents(resolveAllPages(compfile), compfile.assets),
-      renderTemplates(compfile.templates, compfile.assets),
-    ]);
-
+    let pages, templates;
+    try {
+      templates = await renderTemplates(resolveAllTemplates(compfile), compfile.assets);
+      pages = await renderComponents(resolveAllPages(compfile), compfile.assets);
+    } catch(err) {
+      console.log(err);
+      process.exit(1);
+    }
     const staleSnapshot = await loadSnapshot();
 
     const differences = findDirtyComponents(

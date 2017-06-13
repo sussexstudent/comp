@@ -38,20 +38,17 @@ export function getContentIdsFromElement(element) {
     return true;
   }
 
+  process.env['HYDROLEAF_MODE'] = 'RENDER_COMPONENT';
   return reactTreeWalker(element, visitor).then(() => {
-    process.env['HYDROLEAF_MODE'] = 'RENDER_STRING';
     return pageIds;
   });
 }
 
 export function getContentForElement(element) {
-  process.env['HYDROLEAF_MODE'] = 'RENDER_COMPONENT';
   return getContentIdsFromElement(element).then(contentAPILoadAll);
 }
 
 export async function getContentForElements(elements) {
-  process.env['HYDROLEAF_MODE'] = 'RENDER_COMPONENT';
-
   const requests = await Promise.all(
     elements.map(el => getContentIdsFromElement(el))
   );
