@@ -44,7 +44,7 @@ const localAssetsStub = {
   freshers: {
     js: '/assets/freshers.js',
     css: '/assets/style.freshers.css',
-  }
+  },
 };
 
 function handleTemplaing(conf, html) {
@@ -68,9 +68,15 @@ function loadFromLocal(conf, req, res) {
   if (Object.hasOwnProperty.call(pages, path)) {
     const PageComponent = getPageComponentFromConf(conf, path);
     renderComponent(PageComponent).then(componentString => {
-      const templateName = Object.hasOwnProperty.call(PageComponent, 'template') ? PageComponent.template : 'main';
+      const templateName = Object.hasOwnProperty.call(PageComponent, 'template')
+        ? PageComponent.template
+        : 'main';
 
-      const Template = getTemplatePartFromConf(conf, templateName, 'templatePublic');
+      const Template = getTemplatePartFromConf(
+        conf,
+        templateName,
+        'templatePublic'
+      );
       const page = renderHtml(
         conf.html,
         React.createElement(Template, {
