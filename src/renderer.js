@@ -67,14 +67,24 @@ export function renderTemplates(templates, assets) {
     renderedTemplates[templateName] = {
       name: templateName,
       head: templates[templateName].head(assets),
-      templateLoggedIn: render(templates[templateName].templateLoggedIn, {
-        assets,
-        loggedIn: true,
-      }, {}, RENDER_MODE.SERIALIZE),
-      templatePublic: render(templates[templateName].templatePublic, {
-        assets,
-        loggedIn: false,
-      }, {}, RENDER_MODE.SERIALIZE),
+      templateLoggedIn: render(
+        templates[templateName].templateLoggedIn,
+        {
+          assets,
+          loggedIn: true,
+        },
+        {},
+        RENDER_MODE.SERIALIZE
+      ),
+      templatePublic: render(
+        templates[templateName].templatePublic,
+        {
+          assets,
+          loggedIn: false,
+        },
+        {},
+        RENDER_MODE.SERIALIZE
+      ),
     };
   });
 
@@ -106,7 +116,7 @@ export async function renderComponents(pages) {
         pages[pageName],
         {},
         filterStoreForRequests(store, requests[index]),
-        RENDER_MODE.SERIALIZE,
+        RENDER_MODE.SERIALIZE
       ),
     };
   });

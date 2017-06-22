@@ -71,9 +71,15 @@ export default async function() {
     compfile.assets.gitRev = gitRev;
     let pages, templates;
     try {
-      templates = await renderTemplates(resolveAllTemplates(compfile), compfile.assets);
-      pages = await renderComponents(resolveAllPages(compfile), compfile.assets);
-    } catch(err) {
+      templates = await renderTemplates(
+        resolveAllTemplates(compfile),
+        compfile.assets
+      );
+      pages = await renderComponents(
+        resolveAllPages(compfile),
+        compfile.assets
+      );
+    } catch (err) {
       console.log(err);
       process.exit(1);
     }

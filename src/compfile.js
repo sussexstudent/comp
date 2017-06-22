@@ -52,7 +52,6 @@ export function resolveAllTemplates(compfile) {
         ),
       };
     });
-
   } catch (err) {
     console.error('Failed to load templates');
     console.log(err);

@@ -4,7 +4,11 @@ import fetch from 'node-fetch';
 import jsdom from 'jsdom';
 import chokidar from 'chokidar';
 import { renderHtml, renderComponent } from './renderer';
-import { getPageComponentFromConf, loadCompfile } from './compfile';
+import {
+  getPageComponentFromConf,
+  getTemplatePartFromConf,
+  loadCompfile,
+} from './compfile';
 
 const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
 
@@ -37,12 +41,16 @@ const localAssetsStub = {
   vendor: {
     js: '/assets/vendor.js',
   },
+  freshers: {
+    js: '/assets/freshers.js',
+    css: '/assets/style.freshers.css',
+  }
 };
 
 function handleTemplaing(conf, html) {
   const { window } = new jsdom.JSDOM(html);
   const pageContentHTML = window.document.querySelector('main .Container');
-  const Main = conf.templates.main.templatePublic;
+  const Main = getTemplatePartFromConf(conf, 'main', 'templatePublic');
   return renderHtml(
     conf.html,
     React.createElement(Main, { assets: localAssetsStub }),
@@ -60,10 +68,12 @@ function loadFromLocal(conf, req, res) {
   if (Object.hasOwnProperty.call(pages, path)) {
     const PageComponent = getPageComponentFromConf(conf, path);
     renderComponent(PageComponent).then(componentString => {
-      const Main = conf.templates.main.templatePublic;
+      const templateName = Object.hasOwnProperty.call(PageComponent, 'template') ? PageComponent.template : 'main';
+
+      const Template = getTemplatePartFromConf(conf, templateName, 'templatePublic');
       const page = renderHtml(
         conf.html,
-        React.createElement(Main, {
+        React.createElement(Template, {
           assets: localAssetsStub,
           loggedIn: Object.hasOwnProperty.call(req.query, 'auth'),
         }),
