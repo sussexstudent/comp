@@ -7,7 +7,7 @@ import { renderHtml, renderComponent } from './renderer';
 import {
   getPageComponentFromConf,
   getTemplatePartFromConf,
-  loadCompfile,
+  loadCompfile, resolveAllTemplates,
 } from './compfile';
 import * as ui from "./generator/ui";
 
@@ -51,7 +51,7 @@ const localAssetsStub = {
 function handleTemplaing(conf, html) {
   const { window } = new jsdom.JSDOM(html);
   const pageContentHTML = window.document.querySelector('main .Container');
-  const Main = getTemplatePartFromConf(conf, 'main', 'templatePublic');
+  const Main = resolveAllTemplates(conf)['main']['templatePublic'];
   return renderHtml(
     conf.html,
     React.createElement(Main, { assets: localAssetsStub }),
@@ -73,11 +73,8 @@ function loadFromLocal(conf, req, res) {
         ? PageComponent.template
         : 'main';
 
-      const Template = getTemplatePartFromConf(
-        conf,
-        templateName,
-        'templatePublic'
-      );
+      const Template = resolveAllTemplates(conf)[templateName]['templatePublic'];
+
       const page = renderHtml(
         conf.html,
         React.createElement(Template, {
