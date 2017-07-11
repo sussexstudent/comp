@@ -9,20 +9,30 @@ function* getTemplateChanges(differences, renders) {
       };
     }
 
-    if (template.dirtyTemplatePublic || template.isNew) {
-      yield {
-        ...d,
-        part: 'templatePublic',
-        content: renders.templates[template.name].templatePublic,
-      };
-    }
+    if (template.templatesCombined) {
+      if (template.isNew || template.dirtyTemplatePublic || template.dirtyTemplateLoggedIn) {
+        yield {
+          ...d,
+          part: 'template',
+          content: renders.templates[template.name].templatePublic,
+        };
+      }
+    } else {
+      if (template.dirtyTemplatePublic || template.isNew) {
+        yield {
+          ...d,
+          part: 'templatePublic',
+          content: renders.templates[template.name].templatePublic,
+        };
+      }
 
-    if (template.dirtyTemplateLoggedIn || template.isNew) {
-      yield {
-        ...d,
-        part: 'templateLoggedIn',
-        content: renders.templates[template.name].templateLoggedIn,
-      };
+      if (template.dirtyTemplateLoggedIn || template.isNew) {
+        yield {
+          ...d,
+          part: 'templateLoggedIn',
+          content: renders.templates[template.name].templateLoggedIn,
+        };
+      }
     }
   }
 }

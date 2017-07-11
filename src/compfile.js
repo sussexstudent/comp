@@ -2,7 +2,9 @@ import path from 'path';
 import isString from 'lodash/isString';
 
 export function loadCompfile(name = './compfile.js') {
-  return require(path.join(process.cwd(), name)).default;
+  const compfile = require(path.join(process.cwd(), name)).default;
+  validateCompfile(compfile);
+  return compfile;
 }
 
 export function getPageComponentFromConf(compfile, componentPath) {
@@ -35,22 +37,30 @@ export function resolveAllTemplates(compfile) {
 
   try {
     Object.keys(compfile.templates).forEach(templateName => {
-      const template = compfile.templates[templateName];
-      templates[templateName] = {
-        head: isString(template.head)
-          ? getTemplatePartFromConf(compfile, templateName, 'head')
-          : template.head,
-        templatePublic: getTemplatePartFromConf(
-          compfile,
-          templateName,
-          'templatePublic'
-        ),
-        templateLoggedIn: getTemplatePartFromConf(
-          compfile,
-          templateName,
-          'templateLoggedIn'
-        ),
+      const templateConfig = compfile.templates[templateName];
+
+      const getPart = getTemplatePartFromConf.bind(this, compfile, templateName);
+
+      const templateResult = {
+        head: isString(templateConfig.head)
+          ? getPart('head')
+          : templateConfig.head,
       };
+
+      if (
+        Object.hasOwnProperty.call(templateConfig, 'templatePublic')
+        && Object.hasOwnProperty.call(templateConfig, 'templateLoggedIn')
+      ) {
+        templateResult.templatePublic = getPart('templatePublic');
+        templateResult.templateLoggedIn = getPart('templateLoggedIn');
+      } else if (Object.hasOwnProperty.call(templateConfig, 'template')) {
+        templateResult.templatePublic = getPart('template');
+        templateResult.templateLoggedIn = getPart('template');
+      } else {
+        throw new Error(`Either 'template' or ('templatePublic' and 'templateLoggedIn') are required. Missing from template: ${templateName}`);
+      }
+
+      templates[templateName] = templateResult;
     });
   } catch (err) {
     console.error('Failed to load templates');
@@ -59,4 +69,10 @@ export function resolveAllTemplates(compfile) {
   }
 
   return templates;
+}
+
+
+export function validateCompfile(compfile) {
+  resolveAllPages(compfile);
+  resolveAllTemplates(compfile);
 }

@@ -9,6 +9,7 @@ import {
   getTemplatePartFromConf,
   loadCompfile,
 } from './compfile';
+import * as ui from "./generator/ui";
 
 const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
 
@@ -121,6 +122,8 @@ function loadFromSite(conf, req, res) {
 }
 
 function createServer(compfile) {
+  ui.compTag();
+
   watchAndClearCache();
 
   const server = express();

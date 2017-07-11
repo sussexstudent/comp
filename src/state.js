@@ -24,20 +24,29 @@ export function findDirtyComponents(next, previous) {
   Object.keys(next.templates).forEach(templateName => {
     const nextTemplate = next.templates[templateName];
     const previousTemplate = previous.templates[templateName];
+
+    console.log(next, previous);
+
     if (previousTemplate === undefined) {
-      dirtyTemplates.push({ name: templateName, isNew: true });
+      const templatesCombined =
+        nextTemplate.templatePublic === nextTemplate.templateLoggedIn;
+
+      dirtyTemplates.push({ name: templateName, isNew: true, templatesCombined });
     } else {
       const dirtyHead = nextTemplate.head !== previousTemplate.head;
       const dirtyTemplateLoggedIn =
         nextTemplate.templateLoggedIn !== previousTemplate.templateLoggedIn;
       const dirtyTemplatePublic =
         nextTemplate.templatePublic !== previousTemplate.templatePublic;
+      const templatesCombined =
+        nextTemplate.templatePublic === nextTemplate.templateLoggedIn;
       if (dirtyHead || dirtyTemplateLoggedIn || dirtyTemplatePublic) {
         dirtyTemplates.push({
           name: templateName,
           dirtyHead,
           dirtyTemplateLoggedIn,
           dirtyTemplatePublic,
+          templatesCombined,
         });
       }
     }
