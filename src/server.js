@@ -110,7 +110,7 @@ function loadFromSite(conf, req, res) {
 
             return text;
           })
-          .then(text => res.send(text));
+          .then(text => res.send(text.replace(/http:\/\/sussexstudent.com/gi, '')));
       } else {
         response.buffer().then(buf => res.send(buf));
       }
