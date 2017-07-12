@@ -25,8 +25,6 @@ export function findDirtyComponents(next, previous) {
     const nextTemplate = next.templates[templateName];
     const previousTemplate = previous.templates[templateName];
 
-    console.log(next, previous);
-
     if (previousTemplate === undefined) {
       const templatesCombined =
         nextTemplate.templatePublic === nextTemplate.templateLoggedIn;
