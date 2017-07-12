@@ -46,7 +46,7 @@ function render(Component, props, remoteStore, hydroLeafRenderMode = null) {
 
 export const renderHtml = (Html, children, assets, other = {}) => {
   if (other.inject) {
-    global.mslInject = other.inject;
+    global.mslInject = {...global.mslInject || {}, ...other.inject};
   }
 
   return ReactDOM.renderToStaticMarkup(
