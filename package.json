@@ -26,7 +26,7 @@
   },
   "scripts": {
     "dev": "`yarn bin`/tsc -w",
-    "prepare": "`yarn bin`/babel src --out-dir lib",
+    "prepare": "`yarn bin`/tsc",
     "format": "`yarn bin`/prettier --single-quote --trailing-comma es5 --print-width 80 --write \"src/**/*.ts\"",
     "test": "`yarn bin`/jest"
   },
