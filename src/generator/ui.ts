@@ -1,6 +1,7 @@
-import chalk from 'chalk';
+import * as chalk from 'chalk';
+import { DirtyChangeset } from '../types';
 
-export function renderDifferencesList(differences) {
+export function renderDifferencesList(differences: DirtyChangeset) {
   console.log(chalk.underline('Templates'));
   differences.dirtyTemplates.forEach(template => {
     let changes;
@@ -8,7 +9,7 @@ export function renderDifferencesList(differences) {
       changes = 'NEW';
     } else {
       changes = [];
-      if (template.head) {
+      if (template.dirtyHead) {
         changes.push('<head>');
       }
 
@@ -32,8 +33,8 @@ export function renderDifferencesList(differences) {
   });
 }
 
-function createTwoStepMessage(msgGen) {
-  return (...args) => {
+function createTwoStepMessage(msgGen: (...args: Array<any>) => string) {
+  return (...args: Array<any>) => {
     process.stdout.write(msgGen(...args));
     return () => {
       console.log(`${chalk.green('done')}`);
@@ -41,7 +42,7 @@ function createTwoStepMessage(msgGen) {
   };
 }
 
-export const loadingFalmerContent = createTwoStepMessage(count =>
+export const loadingFalmerContent = createTwoStepMessage((count: number) =>
   chalk.white(`loading ${count} documents from falmer contentAPI... `)
 );
 

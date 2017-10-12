@@ -1,18 +1,22 @@
-import React from 'react';
+import * as React from 'react';
 import reactTreeWalker from 'react-tree-walker';
 import flatten from 'lodash/flatten';
 import * as ui from './ui';
+import { HydroleafMode } from '../types';
+import {createRenderBase} from "../renderer";
 
-function createContentStore(promises) {
-  const m = {};
-  promises.forEach(doc => {
+function createContentStore(promises: Array<{ id: number }>) {
+  const m: {
+    [key: number]: Object;
+  } = {};
+  promises.forEach((doc: { id: number }) => {
     m[doc.id] = doc;
   });
 
   return m;
 }
 
-export function contentAPILoadAll(ids) {
+export function contentAPILoadAll(ids: Array<number>) {
   const done = ui.loadingFalmerContent(ids.length);
   const pages = ids.map(id =>
     fetch(`https://falmer.sussexstudent.com/content-api/v2/pages/${id}/`)
@@ -29,26 +33,26 @@ export function contentAPILoadAll(ids) {
     .then(createContentStore);
 }
 
-export function getContentIdsFromElement(element) {
-  const pageIds = [];
-  function visitor(element, instance, context) {
+export function getContentIdsFromElement(element: any) {
+  const pageIds: Array<number> = [];
+  function visitor(_element: any, instance: any) {
     if (instance && Object.hasOwnProperty.call(instance, 'getPageId')) {
       pageIds.push(instance.getPageId());
     }
     return true;
   }
-
-  process.env['HYDROLEAF_MODE'] = 'RENDER_COMPONENT';
-  return reactTreeWalker(element, visitor).then(() => {
+  const RenderBase = createRenderBase({});
+  process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToComponent;
+  return reactTreeWalker(React.createElement(RenderBase, {}, element), visitor).then(() => {
     return pageIds;
   });
 }
 
-export function getContentForElement(element) {
+export function getContentForElement(element: any) {
   return getContentIdsFromElement(element).then(contentAPILoadAll);
 }
 
-export async function getContentForElements(elements) {
+export async function getContentForElements(elements: Array<any>) {
   const requests = await Promise.all(
     elements.map(el => getContentIdsFromElement(el))
   );

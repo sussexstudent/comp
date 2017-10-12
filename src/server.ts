@@ -1,15 +1,16 @@
-import React from 'react';
-import express from 'express';
+import * as React from 'react';
+import * as express from 'express';
 import fetch from 'node-fetch';
-import jsdom from 'jsdom';
-import chokidar from 'chokidar';
+import * as jsdom from 'jsdom';
+import * as chokidar from 'chokidar';
 import { renderHtml, renderComponent } from './renderer';
 import {
   getPageComponentFromConf,
-  getTemplatePartFromConf,
-  loadCompfile, resolveAllTemplates,
+  loadCompfile,
+  resolveAllTemplates,
 } from './compfile';
-import * as ui from "./generator/ui";
+import * as ui from './generator/ui';
+import { Compfile } from './types';
 
 const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
 
@@ -48,7 +49,7 @@ const localAssetsStub = {
   },
 };
 
-function handleTemplaing(conf, html) {
+function handleTemplaing(conf: Compfile, html: string) {
   const { window } = new jsdom.JSDOM(html);
   const pageContentHTML = window.document.querySelector('main .Container');
   const Main = resolveAllTemplates(conf)['main']['templatePublic'];
@@ -62,7 +63,11 @@ function handleTemplaing(conf, html) {
   );
 }
 
-function loadFromLocal(conf, req, res) {
+function loadFromLocal(
+  conf: Compfile,
+  req: express.Request,
+  res: express.Response
+) {
   const pages = conf.pages;
   const path = req.url.slice(2);
 
@@ -73,7 +78,9 @@ function loadFromLocal(conf, req, res) {
         ? PageComponent.template
         : 'main';
 
-      const Template = resolveAllTemplates(conf)[templateName]['templatePublic'];
+      const Template = resolveAllTemplates(conf)[templateName][
+        'templatePublic'
+      ];
 
       const page = renderHtml(
         conf.html,
@@ -96,7 +103,7 @@ function loadFromLocal(conf, req, res) {
   }
 }
 
-function loadFromSite(conf, req, res) {
+function loadFromSite(conf: Compfile, req: any, res: any) {
   fetch(`https://www.sussexstudent.com/${req.originalUrl}`)
     .then(response => {
       const contentType = response.headers.get('Content-Type');
@@ -110,7 +117,9 @@ function loadFromSite(conf, req, res) {
 
             return text;
           })
-          .then(text => res.send(text.replace(/http:\/\/sussexstudent.com/gi, '')));
+          .then(text =>
+            res.send(text.replace(/http:\/\/sussexstudent.com/gi, ''))
+          );
       } else {
         response.buffer().then(buf => res.send(buf));
       }
@@ -118,7 +127,7 @@ function loadFromSite(conf, req, res) {
     .catch(e => console.log(e));
 }
 
-function createServer(compfile) {
+function createServer(compfile: Compfile) {
   ui.compTag();
 
   watchAndClearCache();

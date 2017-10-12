@@ -1,4 +1,9 @@
-function* getTemplateChanges(differences, renders) {
+import { DirtyChangeset, StateSnapshot } from '../types';
+
+function* getTemplateChanges(
+  differences: DirtyChangeset,
+  renders: StateSnapshot
+) {
   for (const template of differences.dirtyTemplates) {
     const d = { type: 'template', name: template.name };
     if (template.dirtyHead || template.isNew) {
@@ -10,7 +15,11 @@ function* getTemplateChanges(differences, renders) {
     }
 
     if (template.templatesCombined) {
-      if (template.isNew || template.dirtyTemplatePublic || template.dirtyTemplateLoggedIn) {
+      if (
+        template.isNew ||
+        template.dirtyTemplatePublic ||
+        template.dirtyTemplateLoggedIn
+      ) {
         yield {
           ...d,
           part: 'template',
@@ -37,13 +46,21 @@ function* getTemplateChanges(differences, renders) {
   }
 }
 
-function* getPageChanges(differences, renders) {
+function* getPageChanges(differences: DirtyChangeset, renders: StateSnapshot) {
   for (const page of differences.dirtyPages) {
-    yield { type: 'page', name: page, content: renders.pages[page].content };
+    yield {
+      type: 'page',
+      name: page,
+      content: renders.pages[page].content,
+      part: null,
+    };
   }
 }
 
-export function* createChangesGenerator(differences, renders) {
+export function* createChangesGenerator(
+  differences: DirtyChangeset,
+  renders: StateSnapshot
+) {
   yield* getTemplateChanges(differences, renders);
   yield* getPageChanges(differences, renders);
 }

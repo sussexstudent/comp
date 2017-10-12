@@ -1,7 +1,13 @@
 import fs from 'fs-extra';
 import * as ui from './generator/ui';
+import {
+  DirtyChangeset,
+  DirtyPages,
+  DirtyTemplates,
+  StateSnapshot,
+} from './types';
 
-export function saveSnapshot(state) {
+export function saveSnapshot(state: StateSnapshot) {
   const done = ui.savingState();
   return fs.writeJson('./compstate.json', state).then(done);
 }
@@ -9,17 +15,20 @@ export function saveSnapshot(state) {
 export function loadSnapshot() {
   return fs
     .readJson('./compstate.json')
-    .then(snapshot => {
+    .then((snapshot: StateSnapshot) => {
       return { templates: {}, pages: {}, ...snapshot };
     })
-    .catch(err => {
+    .catch(() => {
       return { templates: {}, pages: {} };
     });
 }
 
-export function findDirtyComponents(next, previous) {
-  const dirtyTemplates = [];
-  const dirtyPages = [];
+export function findDirtyComponents(
+  next: StateSnapshot,
+  previous: StateSnapshot
+): DirtyChangeset {
+  const dirtyTemplates: DirtyTemplates = [];
+  const dirtyPages: DirtyPages = [];
 
   Object.keys(next.templates).forEach(templateName => {
     const nextTemplate = next.templates[templateName];
@@ -29,7 +38,11 @@ export function findDirtyComponents(next, previous) {
       const templatesCombined =
         nextTemplate.templatePublic === nextTemplate.templateLoggedIn;
 
-      dirtyTemplates.push({ name: templateName, isNew: true, templatesCombined });
+      dirtyTemplates.push({
+        name: templateName,
+        isNew: true,
+        templatesCombined,
+      });
     } else {
       const dirtyHead = nextTemplate.head !== previousTemplate.head;
       const dirtyTemplateLoggedIn =

@@ -7,15 +7,25 @@ import { createChangesGenerator } from './generator/changes';
 import { findDirtyComponents, loadSnapshot, saveSnapshot } from './state';
 import { renderComponents, renderTemplates } from './renderer';
 import { loadCompfile, resolveAllPages, resolveAllTemplates } from './compfile';
+import {
+  Compfile,
+  DirtyChangeset,
+  HydroleafMode,
+  StateSnapshot,
+} from './types';
 
-function differencesUI(differences, next) {
+function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
   // exit if nothing
   if (
     differences.dirtyTemplates.length <= 0 &&
     differences.dirtyPages.length <= 0
   ) {
     console.log(
-      `${chalk.red('No changes!')}. Use ${chalk.blue('-f')} to force all, ${chalk.blue('-p')} to name pages and ${chalk.blue('-t')} for templates`
+      `${chalk.red('No changes!')}. Use ${chalk.blue(
+        '-f'
+      )} to force all, ${chalk.blue('-p')} to name pages and ${chalk.blue(
+        '-t'
+      )} for templates`
     );
     return;
   }
@@ -41,11 +51,17 @@ function differencesUI(differences, next) {
     ncp.copy(content, () => {
       if (type === 'template') {
         console.log(
-          `📋  ${chalk.underline('Template')} ${chalk.blue(name)}: ${chalk.green(part)}. ${chalk.italic('Paste away!')}`
+          `📋  ${chalk.underline('Template')} ${chalk.blue(
+            name
+          )}: ${chalk.green(part !== null ? part : '')}. ${chalk.italic(
+            'Paste away!'
+          )}`
         );
       } else if (type === 'page') {
         console.log(
-          `📋  ${chalk.underline('Page')} ${chalk.blue(name)}.  ${chalk.italic('Paste away!')}`
+          `📋  ${chalk.underline('Page')} ${chalk.blue(name)}.  ${chalk.italic(
+            'Paste away!'
+          )}`
         );
       }
     });
@@ -56,11 +72,13 @@ function differencesUI(differences, next) {
 }
 
 export default async function() {
-  process.env['HYDROLEAF_MODE'] = 'RENDER_STRING';
+  process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToString;
+
+  // Get the current git hash for use in the output
   git.long(async gitRev => {
     ui.compTag();
 
-    let compfile;
+    let compfile: Compfile;
     try {
       compfile = loadCompfile();
     } catch (e) {
@@ -75,15 +93,18 @@ export default async function() {
         resolveAllTemplates(compfile),
         compfile.assets
       );
-      pages = await renderComponents(
-        resolveAllPages(compfile),
-        compfile.assets
-      );
+      pages = await renderComponents(resolveAllPages(compfile));
     } catch (err) {
       console.log(err);
       process.exit(1);
     }
+
     const staleSnapshot = await loadSnapshot();
+
+    if (pages === undefined || templates === undefined) {
+      process.exit(1);
+      return;
+    }
 
     const differences = findDirtyComponents(
       { pages, templates },

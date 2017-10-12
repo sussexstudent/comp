@@ -1,13 +1,26 @@
-import React from 'react';
-import ReactDOM from 'react-dom/server';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom/server';
 import {
   getContentForElement,
   getContentForElements,
 } from './generator/contentAPI';
 import * as ui from './generator/ui';
+import * as PropTypes from 'prop-types';
+import { ApolloProvider, ApolloClient } from 'react-apollo';
+import {
+  HydroleafMode,
+  PageComponentMap,
+  PageResultMap,
+  RenderedTemplateMap,
+  TemplateResultMap,
+} from './types';
 
-function createRenderBase(contentAPIStore) {
+export function createRenderBase(contentAPIStore: object) {
   class RenderBase extends React.Component {
+    static childContextTypes = {
+      contentAPI: PropTypes.object.isRequired,
+    };
+
     getChildContext() {
       return {
         contentAPI: contentAPIStore,
@@ -15,27 +28,22 @@ function createRenderBase(contentAPIStore) {
     }
 
     render() {
-      return this.props.children;
-      //return React.createElement('div', {}, this.props.children);
+      return React.createElement(
+        ApolloProvider,
+        { client: new ApolloClient() },
+        this.props.children
+      );
     }
   }
-
-  RenderBase.childContextTypes = {
-    contentAPI: React.PropTypes.object.isRequired,
-  };
-
   return RenderBase;
 }
 
-export const RENDER_MODE = {
-  PASSTHROUGH: 'RENDER_COMPONENT',
-  SERIALIZE: 'RENDER_STRING',
-};
-
-function render(Component, props, remoteStore, hydroLeafRenderMode = null) {
-  if (hydroLeafRenderMode === null) {
-    throw new Error('No HydroLeaf rendering mode set!');
-  }
+function render(
+  Component: any,
+  props: object,
+  remoteStore: any,
+  hydroLeafRenderMode: HydroleafMode
+) {
   const RenderBase = createRenderBase(remoteStore);
 
   process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
@@ -44,9 +52,17 @@ function render(Component, props, remoteStore, hydroLeafRenderMode = null) {
   );
 }
 
-export const renderHtml = (Html, children, assets, other = {}) => {
+export const renderHtml = (
+  Html: any,
+  children: any,
+  assets: object,
+  other: { inject?: object } = {}
+) => {
   if (other.inject) {
-    global.mslInject = {...global.mslInject || {}, ...other.inject};
+    (<any>global).mslInject = {
+      ...((<any>global).mslInject || {}),
+      ...other.inject,
+    };
   }
 
   return ReactDOM.renderToStaticMarkup(
@@ -54,15 +70,19 @@ export const renderHtml = (Html, children, assets, other = {}) => {
   ).replace('{head_content}', '');
 };
 
-export async function renderComponent(Component, props = {}) {
+export async function renderComponent(Component: any, props = {}) {
   const remoteStore = await getContentForElement(
     React.createElement(Component, props)
   );
-  return render(Component, props, remoteStore, RENDER_MODE.SERIALIZE);
+  return render(Component, props, remoteStore, HydroleafMode.RenderToString);
 }
 
-export function renderTemplates(templates, assets) {
-  const renderedTemplates = {};
+export function renderTemplates(
+  templates: TemplateResultMap,
+  assets: any
+): RenderedTemplateMap {
+  const renderedTemplates: RenderedTemplateMap = {};
+
   Object.keys(templates).forEach(templateName => {
     renderedTemplates[templateName] = {
       name: templateName,
@@ -74,7 +94,7 @@ export function renderTemplates(templates, assets) {
           loggedIn: true,
         },
         {},
-        RENDER_MODE.SERIALIZE
+        HydroleafMode.RenderToString
       ),
       templatePublic: render(
         templates[templateName].templatePublic,
@@ -83,7 +103,7 @@ export function renderTemplates(templates, assets) {
           loggedIn: false,
         },
         {},
-        RENDER_MODE.SERIALIZE
+        HydroleafMode.RenderToString
       ),
     };
   });
@@ -91,16 +111,18 @@ export function renderTemplates(templates, assets) {
   return renderedTemplates;
 }
 
-function filterStoreForRequests(store, requests) {
-  const filteredStore = {};
+function filterStoreForRequests(store: any, requests: Array<string>) {
+  const filteredStore: any = {};
 
   requests.forEach(request => (filteredStore[request] = store[request]));
 
   return filteredStore;
 }
 
-export async function renderComponents(pages) {
-  const renderedPages = {};
+export async function renderComponents(
+  pages: PageComponentMap
+): Promise<PageResultMap> {
+  const renderedPages: PageResultMap = {};
 
   const componentNames = Object.keys(pages);
   const asElements = componentNames.map(pageName => {
@@ -116,7 +138,7 @@ export async function renderComponents(pages) {
         pages[pageName],
         {},
         filterStoreForRequests(store, requests[index]),
-        RENDER_MODE.SERIALIZE
+        HydroleafMode.RenderToString
       ),
     };
   });
