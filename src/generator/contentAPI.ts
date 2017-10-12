@@ -3,7 +3,7 @@ import reactTreeWalker from 'react-tree-walker';
 import flatten from 'lodash/flatten';
 import * as ui from './ui';
 import { HydroleafMode } from '../types';
-import {createRenderBase} from "../renderer";
+import { createRenderBase } from '../renderer';
 
 function createContentStore(promises: Array<{ id: number }>) {
   const m: {
@@ -43,7 +43,10 @@ export function getContentIdsFromElement(element: any) {
   }
   const RenderBase = createRenderBase({});
   process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToComponent;
-  return reactTreeWalker(React.createElement(RenderBase, {}, element), visitor).then(() => {
+  return reactTreeWalker(
+    React.createElement(RenderBase, {}, element),
+    visitor
+  ).then(() => {
     return pageIds;
   });
 }
