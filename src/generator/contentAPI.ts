@@ -1,6 +1,6 @@
 import * as React from 'react';
 import reactTreeWalker from 'react-tree-walker';
-import flatten from 'lodash/flatten';
+import * as _ from 'lodash';
 import * as ui from './ui';
 import { HydroleafMode } from '../types';
 import { createRenderBase } from '../renderer';
@@ -59,7 +59,7 @@ export async function getContentForElements(elements: Array<any>) {
   const requests = await Promise.all(
     elements.map(el => getContentIdsFromElement(el))
   );
-  const store = await contentAPILoadAll(flatten(requests));
+  const store = await contentAPILoadAll(_.flatten(requests));
 
   return [requests, store];
 }

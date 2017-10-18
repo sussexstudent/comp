@@ -7,6 +7,7 @@ import {
 import * as ui from './generator/ui';
 import * as PropTypes from 'prop-types';
 import { ApolloProvider, ApolloClient } from 'react-apollo';
+import { StaticRouter } from 'react-router';
 import {
   HydroleafMode,
   PageComponentMap,
@@ -31,7 +32,7 @@ export function createRenderBase(contentAPIStore: object) {
       return React.createElement(
         ApolloProvider,
         { client: new ApolloClient() },
-        this.props.children
+        React.createElement(StaticRouter, {}, this.props.children)
       );
     }
   }

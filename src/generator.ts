@@ -1,7 +1,7 @@
-import throttle from 'lodash/throttle';
-import chalk from 'chalk';
-import git from 'git-rev';
-import ncp from 'copy-paste';
+import * as _ from 'lodash';
+import * as chalk from 'chalk';
+import * as git from 'git-rev';
+import * as ncp from 'copy-paste';
 import * as ui from './generator/ui';
 import { createChangesGenerator } from './generator/changes';
 import { findDirtyComponents, loadSnapshot, saveSnapshot } from './state';
@@ -68,7 +68,7 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
   }
 
   nextAction();
-  stdin.on('data', throttle(nextAction, 300));
+  stdin.on('data', _.throttle(nextAction, 300));
 }
 
 export default async function() {
