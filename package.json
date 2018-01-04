@@ -22,12 +22,12 @@
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-env": "^1.5.1",
     "jest": "^20.0.4",
-    "prettier": "^1.7.4"
+    "prettier": "^1.9.2"
   },
   "scripts": {
     "dev": "`yarn bin`/tsc -w",
     "prepare": "`yarn bin`/tsc",
-    "format": "`yarn bin`/prettier --single-quote --trailing-comma es5 --print-width 80 --write \"src/**/*.ts\"",
+    "format": "`yarn bin`/prettier --write \"src/**/*.ts\"",
     "test": "`yarn bin`/jest"
   },
   "bin": {
@@ -66,5 +66,11 @@
     "collectCoverageFrom": [
       "src/**/*.{js}"
     ]
+  },
+  "prettier": {
+    "printWidth": 80,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "arrowParens": "always"
   }
 }
