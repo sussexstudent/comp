@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import * as git from 'git-rev';
 import * as ncp from 'copy-paste';
 import * as ui from './generator/ui';
@@ -21,11 +21,7 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
     differences.dirtyPages.length <= 0
   ) {
     console.log(
-      `${chalk.red('No changes!')}. Use ${chalk.blue(
-        '-f'
-      )} to force all, ${chalk.blue('-p')} to name pages and ${chalk.blue(
-        '-t'
-      )} for templates`
+      chalk`{red No Changes!}. Use {blue -f} to force all, {blue -p} to name pages and {blue -t for templates}`
     );
     return;
   }
@@ -51,17 +47,12 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
     ncp.copy(content, () => {
       if (type === 'template') {
         console.log(
-          `📋  ${chalk.underline('Template')} ${chalk.blue(
-            name
-          )}: ${chalk.green(part !== null ? part : '')}. ${chalk.italic(
-            'Paste away!'
-          )}`
+          chalk`📋  {underline Template} {blue ${name}}: {green ${part !== null ? part : ''}}.
+           {italic Paste away!}`
         );
       } else if (type === 'page') {
         console.log(
-          `📋  ${chalk.underline('Page')} ${chalk.blue(name)}.  ${chalk.italic(
-            'Paste away!'
-          )}`
+          chalk`📋  {underline Page} {blue ${name}}. {italic Paste away!}`
         );
       }
     });

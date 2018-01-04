@@ -48,9 +48,8 @@ function render(
   const RenderBase = createRenderBase(remoteStore);
 
   process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
-  return ReactDOM.renderToStaticMarkup(
-    React.createElement(RenderBase, {}, React.createElement(Component, props))
-  );
+  const finalElement: any = React.createElement(RenderBase, {}, React.createElement(Component, props));
+  return ReactDOM.renderToString(finalElement);
 }
 
 export const renderHtml = (
@@ -65,10 +64,9 @@ export const renderHtml = (
       ...other.inject,
     };
   }
-
-  return ReactDOM.renderToStaticMarkup(
-    React.createElement(Html, { assets: assets }, children)
-  ).replace('{head_content}', '');
+  const finalElement: any = React.createElement(Html, { assets: assets }, children);
+  return ReactDOM.renderToStaticMarkup(finalElement)
+    .replace('{head_content}', '');
 };
 
 export async function renderComponent(Component: any, props = {}) {
