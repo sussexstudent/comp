@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import { DirtyChangeset } from '../types';
 
 export function renderDifferencesList(differences: DirtyChangeset) {
-  console.log(chalk`{underline Templates`);
+  console.log(chalk`{underline Templates}`);
   differences.dirtyTemplates.forEach((template) => {
     let changes;
     if (template.isNew) {
@@ -55,7 +55,7 @@ export const renderingComponents = createTwoStepMessage(() =>
 );
 
 export function compTag() {
-  console.log(chalk`{bold.white comp`);
+  console.log(chalk`{bold.white comp}`);
 }
 
 export function missingCompfile() {
