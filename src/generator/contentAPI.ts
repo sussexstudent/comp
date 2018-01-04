@@ -18,15 +18,15 @@ function createContentStore(promises: Array<{ id: number }>) {
 
 export function contentAPILoadAll(ids: Array<number>) {
   const done = ui.loadingFalmerContent(ids.length);
-  const pages = ids.map(id =>
+  const pages = ids.map((id) =>
     fetch(`https://falmer.sussexstudent.com/content-api/v2/pages/${id}/`)
-      .then(data => data.json())
-      .then(data => {
+      .then((data) => data.json())
+      .then((data) => {
         return data;
       })
   );
   return Promise.all(pages)
-    .then(content => {
+    .then((content) => {
       done();
       return content;
     })
@@ -57,7 +57,7 @@ export function getContentForElement(element: any) {
 
 export async function getContentForElements(elements: Array<any>) {
   const requests = await Promise.all(
-    elements.map(el => getContentIdsFromElement(el))
+    elements.map((el) => getContentIdsFromElement(el))
   );
   const store = await contentAPILoadAll(_.flatten(requests));
 

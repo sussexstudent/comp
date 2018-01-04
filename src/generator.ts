@@ -6,7 +6,7 @@ import * as ui from './generator/ui';
 import { createChangesGenerator } from './generator/changes';
 import { findDirtyComponents, loadSnapshot, saveSnapshot } from './state';
 import { renderComponents, renderTemplates } from './renderer';
-import { loadCompfile, resolveAllPages, resolveAllTemplates } from './compfile';
+import { getCompfile, resolveAllPages, resolveAllTemplates } from './compfile';
 import {
   Compfile,
   DirtyChangeset,
@@ -75,18 +75,18 @@ export default async function() {
   process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToString;
 
   // Get the current git hash for use in the output
-  git.long(async gitRev => {
+  git.long(async (_gitRev) => {
     ui.compTag();
 
     let compfile: Compfile;
     try {
-      compfile = loadCompfile();
+      compfile = await getCompfile();
     } catch (e) {
       ui.missingCompfile();
       throw e;
     }
 
-    compfile.assets.gitRev = gitRev;
+    // compfile.assets.gitRev = gitRev;
     let pages, templates;
     try {
       templates = await renderTemplates(

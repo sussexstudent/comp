@@ -12,6 +12,10 @@ export interface Compfile {
   };
 }
 
+export interface CompfileWatcher {
+  getCompfile(): Compfile;
+}
+
 type HeadFunction = (assets: any) => string;
 
 export interface TemplateResult {

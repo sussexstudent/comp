@@ -2,24 +2,50 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import {
   Compfile,
+  CompfileWatcher,
   PageComponent,
   PageComponentMap,
   TemplateResult,
   TemplateResultMap,
 } from './types';
+import { createCompiler } from './compile';
 
-export function loadCompfile(name = './compfile.js'): Compfile {
-  const compfile = require(path.join(process.cwd(), name)).default;
-  validateCompfile(compfile);
-  return compfile;
+export function createCompfileWatcher(
+  name = './compfile.js'
+): CompfileWatcher {
+  const compiler = createCompiler(path.join(process.cwd(), name));
+  let compfile: Compfile | null = null;
+
+  compiler.watch({}, () => {
+    console.log('recompiled from watch!');
+    compfile = require(path.join(process.cwd(), 'comp-dist/union.main.js'))
+      .default as Compfile;
+  });
+
+  return {
+    getCompfile: () => compfile as any,
+  };
+}
+
+export function getCompfile(name = './compfile.js'): Promise<Compfile> {
+  const compiler = createCompiler(path.join(process.cwd(), name));
+
+  return new Promise((resolve, _reject) => {
+    compiler.run((_err, _stats) => {
+      const compfile = require(path.join(
+        process.cwd(),
+        'comp-dist/union.main.js'
+      )).default as Compfile;
+      resolve(compfile);
+    });
+  });
 }
 
 export function getPageComponentFromConf(
   compfile: Compfile,
   componentPath: string
 ): PageComponent {
-  return require(path.join(compfile.root, compfile.pages[componentPath]))
-    .default;
+  return compfile.pages[componentPath].default;
 }
 
 export function getTemplatePartFromConf(
@@ -27,16 +53,13 @@ export function getTemplatePartFromConf(
   templateName: string,
   part: string
 ) {
-  return require(path.join(
-    compfile.root,
-    compfile.templates[templateName][part]
-  )).default;
+  return compfile.templates[templateName][part].default;
 }
 
 export function resolveAllPages(compfile: Compfile) {
   const components: PageComponentMap = {};
 
-  Object.keys(compfile.pages).forEach(componentPath => {
+  Object.keys(compfile.pages).forEach((componentPath) => {
     components[componentPath] = getPageComponentFromConf(
       compfile,
       componentPath
@@ -49,7 +72,7 @@ export function resolveAllPages(compfile: Compfile) {
 export function resolveAllTemplates(compfile: Compfile): TemplateResultMap {
   const templates: TemplateResultMap = {};
   try {
-    Object.keys(compfile.templates).forEach(templateName => {
+    Object.keys(compfile.templates).forEach((templateName) => {
       const templateConfig = compfile.templates[templateName];
 
       const getPart = getTemplatePartFromConf.bind(

@@ -5,17 +5,17 @@ import * as jsdom from 'jsdom';
 import * as chokidar from 'chokidar';
 import { renderHtml, renderComponent } from './renderer';
 import {
+  createCompfileWatcher,
   getPageComponentFromConf,
-  loadCompfile,
   resolveAllTemplates,
 } from './compfile';
 import * as ui from './generator/ui';
-import { Compfile } from './types';
+import { Compfile, CompfileWatcher } from './types';
 
 const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
 
 function clearRequireCache() {
-  Object.keys(require.cache).forEach(module => {
+  Object.keys(require.cache).forEach((module) => {
     if (moduleDetectRegEx.test(require.cache[module].filename)) {
       console.log(`deleting ${require.cache[module].filename}`);
       delete require.cache[module];
@@ -64,16 +64,17 @@ function handleTemplaing(conf: Compfile, html: string) {
 }
 
 function loadFromLocal(
-  conf: Compfile,
+  compfileWatcher: CompfileWatcher,
   req: express.Request,
   res: express.Response
 ) {
+  const conf = compfileWatcher.getCompfile();
   const pages = conf.pages;
   const path = req.url.slice(2);
 
   if (Object.hasOwnProperty.call(pages, path)) {
     const PageComponent = getPageComponentFromConf(conf, path);
-    renderComponent(PageComponent).then(componentString => {
+    renderComponent(PageComponent).then((componentString) => {
       const templateName = Object.hasOwnProperty.call(PageComponent, 'template')
         ? PageComponent.template
         : 'main';
@@ -103,44 +104,45 @@ function loadFromLocal(
   }
 }
 
-function loadFromSite(conf: Compfile, req: any, res: any) {
+function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
+  const conf = compfileWatcher.getCompfile();
   fetch(`https://www.sussexstudent.com/${req.originalUrl}`)
-    .then(response => {
+    .then((response) => {
       const contentType = response.headers.get('Content-Type');
       if (contentType.startsWith('text')) {
         response
           .text()
-          .then(text => {
+          .then((text) => {
             if (contentType.startsWith('text/html')) {
               return handleTemplaing(conf, text);
             }
 
             return text;
           })
-          .then(text =>
+          .then((text) =>
             res.send(text.replace(/http:\/\/sussexstudent.com/gi, ''))
           );
       } else {
-        response.buffer().then(buf => res.send(buf));
+        response.buffer().then((buf) => res.send(buf));
       }
     })
-    .catch(e => console.log(e));
+    .catch((e) => console.log(e));
 }
 
-function createServer(compfile: Compfile) {
+function createServer(compfileWatcher: CompfileWatcher) {
   ui.compTag();
 
   watchAndClearCache();
 
   const server = express();
 
-  server.get('/~/:page(*)', loadFromLocal.bind({}, compfile));
-  server.get('/*', loadFromSite.bind({}, compfile));
+  server.get('/~/:page(*)', loadFromLocal.bind({}, compfileWatcher));
+  server.get('/*', loadFromSite.bind({}, compfileWatcher));
 
   return server;
 }
 
 export default function compMiddleware() {
-  const compfile = loadCompfile();
-  return createServer(compfile);
+  const compfileWatcher = createCompfileWatcher();
+  return createServer(compfileWatcher);
 }

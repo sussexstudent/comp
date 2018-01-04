@@ -30,7 +30,7 @@ export function findDirtyComponents(
   const dirtyTemplates: DirtyTemplates = [];
   const dirtyPages: DirtyPages = [];
 
-  Object.keys(next.templates).forEach(templateName => {
+  Object.keys(next.templates).forEach((templateName) => {
     const nextTemplate = next.templates[templateName];
     const previousTemplate = previous.templates[templateName];
 
@@ -63,7 +63,7 @@ export function findDirtyComponents(
     }
   });
 
-  Object.keys(next.pages).forEach(pageName => {
+  Object.keys(next.pages).forEach((pageName) => {
     if (
       !Object.hasOwnProperty.call(previous.pages, pageName) ||
       next.pages[pageName].content !== previous.pages[pageName].content

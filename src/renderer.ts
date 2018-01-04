@@ -84,7 +84,7 @@ export function renderTemplates(
 ): RenderedTemplateMap {
   const renderedTemplates: RenderedTemplateMap = {};
 
-  Object.keys(templates).forEach(templateName => {
+  Object.keys(templates).forEach((templateName) => {
     renderedTemplates[templateName] = {
       name: templateName,
       head: templates[templateName].head(assets),
@@ -115,7 +115,7 @@ export function renderTemplates(
 function filterStoreForRequests(store: any, requests: Array<string>) {
   const filteredStore: any = {};
 
-  requests.forEach(request => (filteredStore[request] = store[request]));
+  requests.forEach((request) => (filteredStore[request] = store[request]));
 
   return filteredStore;
 }
@@ -126,7 +126,7 @@ export async function renderComponents(
   const renderedPages: PageResultMap = {};
 
   const componentNames = Object.keys(pages);
-  const asElements = componentNames.map(pageName => {
+  const asElements = componentNames.map((pageName) => {
     return React.createElement(pages[pageName]);
   });
 
