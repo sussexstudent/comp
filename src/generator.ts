@@ -72,6 +72,7 @@ export default async function() {
     let compfile: Compfile;
     try {
       compfile = await getCompfile();
+      console.log(chalk`{green compfile loaded}`);
     } catch (e) {
       ui.missingCompfile();
       throw e;

@@ -21,6 +21,7 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "outDir": "lib"
+    "outDir": "lib",
+    "jsx": "react"
   }
 }

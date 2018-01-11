@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as express from 'express';
 import fetch from 'node-fetch';
 import * as jsdom from 'jsdom';
-import * as chokidar from 'chokidar';
 import { renderHtml, renderComponent } from './renderer';
 import {
   createCompfileWatcher,
@@ -11,26 +10,6 @@ import {
 } from './compfile';
 import * as ui from './generator/ui';
 import { Compfile, CompfileWatcher } from './types';
-
-const moduleDetectRegEx = /(layout|components|setup).*\.js$/;
-
-function clearRequireCache() {
-  Object.keys(require.cache).forEach((module) => {
-    if (moduleDetectRegEx.test(require.cache[module].filename)) {
-      console.log(`deleting ${require.cache[module].filename}`);
-      delete require.cache[module];
-    }
-  });
-}
-
-function watchAndClearCache() {
-  chokidar
-    .watch(['./generator/layouts', './generator/components'])
-    .on('change', () => {
-      console.log('updated!');
-      clearRequireCache();
-    });
-}
 
 const localAssetsStub = {
   main: {
@@ -85,10 +64,7 @@ function loadFromLocal(
 
       const page = renderHtml(
         conf.html,
-        React.createElement(Template, {
-          assets: localAssetsStub,
-          loggedIn: Object.hasOwnProperty.call(req.query, 'auth'),
-        }),
+        (<Template assets={localAssetsStub} loggedIn={Object.hasOwnProperty.call(req.query, 'auth')} />),
         localAssetsStub,
         {
           inject: {
@@ -131,8 +107,6 @@ function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
 
 function createServer(compfileWatcher: CompfileWatcher) {
   ui.compTag();
-
-  watchAndClearCache();
 
   const server = express();
 

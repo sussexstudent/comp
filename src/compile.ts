@@ -12,7 +12,14 @@ export function createCompiler(compfilePath: string) {
     entry: compfilePath,
     target: 'node',
     externals: nodeExternals(),
-    plugins: [...prodOptions.plugins],
+    plugins: [
+      ...prodOptions.plugins,
+      new webpack.DefinePlugin({
+        'process.env': {
+          'COMP_NODE': '1'
+        }
+      })
+    ],
     output: {
       ...prodOptions.output,
       library: 'CompApp',

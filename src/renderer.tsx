@@ -6,7 +6,8 @@ import {
 } from './generator/contentAPI';
 import * as ui from './generator/ui';
 import * as PropTypes from 'prop-types';
-import { ApolloProvider, ApolloClient } from 'react-apollo';
+import { ApolloProvider } from 'react-apollo';
+import { ApolloClient, InMemoryCache, HttpLink } from 'apollo-client-preset';
 import { StaticRouter } from 'react-router';
 import {
   HydroleafMode,
@@ -16,7 +17,15 @@ import {
   TemplateResultMap,
 } from './types';
 
-export function createRenderBase(contentAPIStore: object) {
+export function createRenderBase(contentAPIStore: object, location: string | undefined = undefined) {
+  const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: new HttpLink({
+        uri: 'https://falmer.sussexstudent.com',
+      }),
+    ssrMode: true
+  });
+
   class RenderBase extends React.Component {
     static childContextTypes = {
       contentAPI: PropTypes.object.isRequired,
@@ -29,13 +38,16 @@ export function createRenderBase(contentAPIStore: object) {
     }
 
     render() {
-      return React.createElement(
-        ApolloProvider,
-        { client: new ApolloClient() },
-        React.createElement(StaticRouter, {}, this.props.children)
+      return (
+        <ApolloProvider client={client}>
+          <StaticRouter location={location} context={{}}>
+            {this.props.children}
+          </StaticRouter>
+        </ApolloProvider>
       );
     }
   }
+
   return RenderBase;
 }
 
@@ -43,13 +55,14 @@ function render(
   Component: any,
   props: object,
   remoteStore: any,
-  hydroLeafRenderMode: HydroleafMode
+  hydroLeafRenderMode: HydroleafMode,
+  location: string | undefined = undefined,
 ) {
-  const RenderBase = createRenderBase(remoteStore);
+  const RenderBase = createRenderBase(remoteStore, location);
 
   process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
   const finalElement: any = React.createElement(RenderBase, {}, React.createElement(Component, props));
-  return ReactDOM.renderToString(finalElement);
+  return ReactDOM.renderToStaticMarkup(finalElement);
 }
 
 export const renderHtml = (
@@ -59,8 +72,8 @@ export const renderHtml = (
   other: { inject?: object } = {}
 ) => {
   if (other.inject) {
-    (<any>global).mslInject = {
-      ...((<any>global).mslInject || {}),
+    ((global as any)).mslInject = {
+      ...(((global as any)).mslInject || {}),
       ...other.inject,
     };
   }
@@ -69,11 +82,11 @@ export const renderHtml = (
     .replace('{head_content}', '');
 };
 
-export async function renderComponent(Component: any, props = {}) {
+export async function renderComponent(Component: any, props = {}, location: string | undefined = undefined) {
   const remoteStore = await getContentForElement(
     React.createElement(Component, props)
   );
-  return render(Component, props, remoteStore, HydroleafMode.RenderToString);
+  return render(Component, props, remoteStore, HydroleafMode.RenderToString, location);
 }
 
 export function renderTemplates(

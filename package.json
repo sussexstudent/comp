@@ -11,7 +11,7 @@
     "@types/fs-extra": "^5.0.0",
     "@types/git-rev": "^0.2.0",
     "@types/jsdom": "^11.0.4",
-    "@types/lodash": "^4.14.91",
+    "@types/lodash": "^4.14.92",
     "@types/lodash-es": "^4.17.0",
     "@types/node-fetch": "^1.6.7",
     "@types/prop-types": "^15.5.2",
@@ -25,8 +25,8 @@
     "babel-plugin-transform-async-generator-functions": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-env": "^1.6.1",
-    "jest": "^22.0.4",
-    "prettier": "^1.9.2"
+    "jest": "^22.0.5",
+    "prettier": "^1.10.1"
   },
   "scripts": {
     "dev": "`yarn bin`/tsc -w",
@@ -38,6 +38,7 @@
     "comp": "./lib/src/cli.js"
   },
   "dependencies": {
+    "apollo-client-preset": "^1.0.6",
     "babel-register": "^6.24.1",
     "chalk": "^2.3.0",
     "chokidar": "^2.0.0",
@@ -45,13 +46,14 @@
     "express": "^4.15.3",
     "fs-extra": "^5.0.0",
     "git-rev": "^0.2.1",
+    "graphql": "^0.12.3",
     "jsdom": "^11.5.1",
     "lodash": "^4.17.4",
     "lodash-es": "^4.17.4",
     "node-fetch": "^1.7.3",
     "prop-types": "^15.6.0",
     "react": "16.2.0",
-    "react-apollo": "^1.4.16",
+    "react-apollo": "^2.0.4",
     "react-dom": "16.2.0",
     "react-router": "^4.2.0",
     "react-tree-walker": "^2.1.3",
