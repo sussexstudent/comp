@@ -42,16 +42,12 @@ function createTwoStepMessage(msgGen: (...args: Array<any>) => string) {
   };
 }
 
-export const loadingFalmerContent = createTwoStepMessage((count: number) =>
-  chalk`{white loading ${count.toString()} documents from falmer contentAPI... }`
+export const savingState = createTwoStepMessage(
+  () => chalk`{white saving state file...}`
 );
 
-export const savingState = createTwoStepMessage(() =>
-  chalk`{white saving state file...}`
-);
-
-export const renderingComponents = createTwoStepMessage(() =>
-  chalk`{white rendering components to markup... }`
+export const renderingComponents = createTwoStepMessage(
+  () => chalk`{white rendering components to markup... }`
 );
 
 export function compTag() {

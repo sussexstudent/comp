@@ -11,8 +11,10 @@ import {
   Compfile,
   DirtyChangeset,
   HydroleafMode,
+  PageComponentMap,
   StateSnapshot,
 } from './types';
+import { createContentCache } from './content';
 
 function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
   // exit if nothing
@@ -47,7 +49,9 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
     ncp.copy(content, () => {
       if (type === 'template') {
         console.log(
-          chalk`📋  {underline Template} {blue ${name}}: {green ${part !== null ? part : ''}}.
+          chalk`📋  {underline Template} {blue ${name}}: {green ${
+            part !== null ? part : ''
+          }}.
            {italic Paste away!}`
         );
       } else if (type === 'page') {
@@ -63,11 +67,11 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
 }
 
 export default async function() {
+  ui.compTag();
   process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToString;
 
   // Get the current git hash for use in the output
   git.long(async (_gitRev) => {
-    ui.compTag();
 
     let compfile: Compfile;
     try {
@@ -79,13 +83,28 @@ export default async function() {
     }
 
     // compfile.assets.gitRev = gitRev;
+    const contentCache = createContentCache();
     let pages, templates;
     try {
       templates = await renderTemplates(
         resolveAllTemplates(compfile),
         compfile.assets
       );
-      pages = await renderComponents(resolveAllPages(compfile));
+
+      let contentApiPages: PageComponentMap = {};
+
+      if (compfile.contentApi) {
+        const options = compfile.contentApi;
+        const paths: Array<string> = await contentCache.getAllPaths(
+          compfile.contentApi
+        );
+        paths.forEach((path) => {
+          contentApiPages[path] = options.template;
+        });
+      }
+
+      const allPages = { ...resolveAllPages(compfile), ...contentApiPages };
+      pages = await renderComponents(allPages);
     } catch (err) {
       console.log(err);
       process.exit(1);

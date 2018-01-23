@@ -1,3 +1,10 @@
+export interface ContentApiOptions {
+  endpoint: string;
+  template: any;
+  transformPath?(path: string): string;
+  skipPaths: Array<string>;
+}
+
 export interface Compfile {
   root: string;
   html: any;
@@ -10,6 +17,8 @@ export interface Compfile {
   assets: {
     gitRev?: string;
   };
+
+  contentApi?: ContentApiOptions;
 }
 
 export interface CompfileWatcher {

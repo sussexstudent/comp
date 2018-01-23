@@ -9,24 +9,56 @@ import {
   resolveAllTemplates,
 } from './compfile';
 import * as ui from './generator/ui';
-import { Compfile, CompfileWatcher } from './types';
+import {Compfile, CompfileWatcher, ContentApiOptions} from './types';
+import * as bodyParser from "body-parser";
+import {createContentCache, normaliseContentPath} from "./content";
+import chalk from "chalk";
 
+// todo: current assets.mainifest makes this more complex.
 const localAssetsStub = {
-  main: {
-    js: '/assets/main.js',
-    css: '/assets/style.main.css',
-  },
-  productionFonts: {
-    css: '/assets/style.productionFonts.css',
-  },
-  vendor: {
-    js: '/assets/vendor.js',
-  },
-  freshers: {
-    js: '/assets/freshers.js',
-    css: '/assets/style.freshers.css',
-  },
+  map: new Proxy({}, {
+    get(_target, name) {
+      return new Proxy({}, {
+        get(_atTarget, atName) {
+          if (atName === 'js') {
+            return `/assets/${name}.js`;
+          }
+
+          if (atName === 'css') {
+            return `/assets/style.${name}.css`;
+          }
+        }
+      });
+    }
+  })
 };
+
+// const localAssetStub = {
+//   main: {
+//     js: '/assets/main.js',
+//     css: '/assets/style.main.css',
+//   },
+//   productionFonts: {
+//     css: '/assets/style.productionFonts.css',
+//   },
+//   vendor: {
+//     js: '/assets/vendor.js',
+//   },
+//   lazysiz: {
+//     js: '/assets/vendor.js',
+//   },
+//   freshers: {
+//     js: '/assets/freshers.js',
+//     css: '/assets/style.freshers.css',
+//   },
+// };
+
+enum PageMode {
+  Local = 'local',
+  Proxy = 'proxy'
+}
+
+const contentCache = createContentCache();
 
 function handleTemplaing(conf: Compfile, html: string) {
   const { window } = new jsdom.JSDOM(html);
@@ -49,7 +81,7 @@ function loadFromLocal(
 ) {
   const conf = compfileWatcher.getCompfile();
   const pages = conf.pages;
-  const path = req.url.slice(2);
+  const path = req.path;
 
   if (Object.hasOwnProperty.call(pages, path)) {
     const PageComponent = getPageComponentFromConf(conf, path);
@@ -64,7 +96,7 @@ function loadFromLocal(
 
       const page = renderHtml(
         conf.html,
-        (<Template assets={localAssetsStub} loggedIn={Object.hasOwnProperty.call(req.query, 'auth')} />),
+        (<Template assets={localAssetsStub} />),
         localAssetsStub,
         {
           inject: {
@@ -78,6 +110,40 @@ function loadFromLocal(
     res.status(404);
     res.send('404 ~ Not found.');
   }
+}
+
+function loadFromContentApi(
+  path: string,
+  options: ContentApiOptions,
+  compfileWatcher: CompfileWatcher,
+  req: express.Request,
+  res: express.Response
+) {
+  console.log(chalk`{keyword('teal') [server] loading from content api}`);
+  const conf = compfileWatcher.getCompfile();
+
+  const PageComponent = options.template;
+
+  renderComponent(PageComponent, { path }, path).then((componentString) => {
+    const templateName = 'main';
+
+    const Template = resolveAllTemplates(conf)[templateName][
+      'templatePublic'
+    ];
+
+
+    const page = renderHtml(
+      conf.html,
+      (<Template assets={localAssetsStub} loggedIn={Object.hasOwnProperty.call(req.query, 'auth')} />),
+      localAssetsStub,
+      {
+        inject: {
+          Content: componentString,
+        },
+      }
+    );
+    res.send(page);
+  });
 }
 
 function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
@@ -105,13 +171,50 @@ function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
     .catch((e) => console.log(e));
 }
 
+function handlePage(compfileWatcher: CompfileWatcher, req: any, res: any) {
+  if (!compfileWatcher.getCompfile()) {
+    res.send('Compfile has not finished compiling yet!');
+    return;
+  }
+  const compfile = compfileWatcher.getCompfile();
+
+  if (!compfile.contentApi) {
+    if (req.query.mode === PageMode.Local) {
+      return loadFromLocal(compfileWatcher, req, res);
+    } else {
+      return loadFromSite(compfileWatcher, req, res);
+    }
+  } else {
+    const contentApiOptions = compfile.contentApi;
+    if (req.query.mode === PageMode.Local) {
+      return loadFromLocal(compfileWatcher, req, res);
+    } else {
+      contentCache.getAllPaths(contentApiOptions).then(paths => {
+        const normalisedRequestPath = normaliseContentPath(req.originalUrl);
+
+        if (paths.indexOf(normalisedRequestPath) >= 0) {
+          try {
+            return loadFromContentApi(normalisedRequestPath, contentApiOptions, compfileWatcher, req, res);
+          } catch (e) {
+            console.log(chalk`{keyword('orange') [content] page failed to render from content api}`);
+            console.log(e);
+          }
+        } else {
+          return loadFromSite(compfileWatcher, req, res);
+        }
+      });
+    }
+  }
+}
+
 function createServer(compfileWatcher: CompfileWatcher) {
   ui.compTag();
 
   const server = express();
 
-  server.get('/~/:page(*)', loadFromLocal.bind({}, compfileWatcher));
-  server.get('/*', loadFromSite.bind({}, compfileWatcher));
+  server.use(bodyParser.json());
+
+  server.get('/*', handlePage.bind({}, compfileWatcher));
 
   return server;
 }

@@ -1,12 +1,8 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/server';
-import {
-  getContentForElement,
-  getContentForElements,
-} from './generator/contentAPI';
 import * as ui from './generator/ui';
 import * as PropTypes from 'prop-types';
-import { ApolloProvider } from 'react-apollo';
+import {ApolloProvider, getDataFromTree} from 'react-apollo';
 import { ApolloClient, InMemoryCache, HttpLink } from 'apollo-client-preset';
 import { StaticRouter } from 'react-router';
 import {
@@ -17,12 +13,24 @@ import {
   TemplateResultMap,
 } from './types';
 
+const ENDPOINT = 'https://falmer.sussexstudent.com/graphql';
+
+function createFreshApolloClient() {
+  return new ApolloClient({
+    cache: new InMemoryCache(),
+    link: new HttpLink({
+      uri: ENDPOINT,
+    }),
+    ssrMode: true
+  });
+}
+
 export function createRenderBase(contentAPIStore: object, location: string | undefined = undefined) {
   const client = new ApolloClient({
-      cache: new InMemoryCache(),
-      link: new HttpLink({
-        uri: 'https://falmer.sussexstudent.com',
-      }),
+    cache: new InMemoryCache(),
+    link: new HttpLink({
+      uri: ENDPOINT,
+    }),
     ssrMode: true
   });
 
@@ -69,7 +77,7 @@ export const renderHtml = (
   Html: any,
   children: any,
   assets: object,
-  other: { inject?: object } = {}
+  other: { inject?: object, compOptions?: string } = {}
 ) => {
   if (other.inject) {
     ((global as any)).mslInject = {
@@ -77,16 +85,34 @@ export const renderHtml = (
       ...other.inject,
     };
   }
-  const finalElement: any = React.createElement(Html, { assets: assets }, children);
+
+  let additionalHead = [];
+
+  if (other.compOptions) {
+    additionalHead.push(other.compOptions);
+  }
+
+  const finalElement: any = React.createElement(Html, { assets: assets, additionalHead }, children);
   return ReactDOM.renderToStaticMarkup(finalElement)
     .replace('{head_content}', '');
 };
 
 export async function renderComponent(Component: any, props = {}, location: string | undefined = undefined) {
-  const remoteStore = await getContentForElement(
-    React.createElement(Component, props)
+  process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToComponent;
+
+  const finalElement: any = (
+    <ApolloProvider client={createFreshApolloClient()}>
+      <StaticRouter location={location} context={{}}>
+        <Component {...props} />
+      </StaticRouter>
+    </ApolloProvider>
   );
-  return render(Component, props, remoteStore, HydroleafMode.RenderToString, location);
+
+  return getDataFromTree(finalElement).then(() => {
+    process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToString;
+
+    return ReactDOM.renderToStaticMarkup(finalElement as any);
+  });
 }
 
 export function renderTemplates(
@@ -123,37 +149,26 @@ export function renderTemplates(
   return renderedTemplates;
 }
 
-function filterStoreForRequests(store: any, requests: Array<string>) {
-  const filteredStore: any = {};
-
-  requests.forEach((request) => (filteredStore[request] = store[request]));
-
-  return filteredStore;
-}
-
 export async function renderComponents(
   pages: PageComponentMap
 ): Promise<PageResultMap> {
   const renderedPages: PageResultMap = {};
 
   const componentNames = Object.keys(pages);
-  const asElements = componentNames.map((pageName) => {
-    return React.createElement(pages[pageName]);
-  });
 
-  const [requests, store] = await getContentForElements(asElements);
   const done = ui.renderingComponents();
-  componentNames.forEach((pageName, index) => {
+
+  await Promise.all(componentNames.map(async (pageName, _index) => {
+    const content = await renderComponent(
+      pages[pageName],
+      { path: pageName },
+      pageName,
+    );
     renderedPages[pageName] = {
       name: pageName,
-      content: render(
-        pages[pageName],
-        {},
-        filterStoreForRequests(store, requests[index]),
-        HydroleafMode.RenderToString
-      ),
+      content,
     };
-  });
+  }));
 
   done();
 
