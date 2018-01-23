@@ -1,7 +1,6 @@
 import * as childProcess from 'child_process';
 import * as EventEmitter from 'events';
 import * as path from "path";
-import chalk from "chalk";
 
 class WebpackEmitter extends EventEmitter {}
 
