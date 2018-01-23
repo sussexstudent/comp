@@ -1,31 +1,41 @@
-import * as webpack from 'webpack';
-import * as nodeExternals from 'webpack-node-externals';
-import * as path from 'path';
+import * as childProcess from 'child_process';
+import * as EventEmitter from 'events';
+import * as path from "path";
+import chalk from "chalk";
+
+class WebpackEmitter extends EventEmitter {}
+
+export function createCompilerWatcher(compfilePath: string): WebpackEmitter {
+  const compilerChild = childProcess.fork(path.join(__dirname, './compile-process'));
+  const ee = new WebpackEmitter();
+
+  compilerChild.send({ type: 'start', value: 'watch', compfilePath });
+
+  compilerChild.on('message', ({ type, value }) => {
+    if (type === 'status') {
+      if (value === 'compiling') {
+      } else if (value === 'compiled') {
+        ee.emit('compile');
+      }
+    }
+  });
+
+  return ee;
+}
 
 export function createCompiler(compfilePath: string) {
-  const prodOptions = require(path.join(
-    process.cwd(),
-    'webpack.comp.config.js'
-  ));
-  const options = {
-    ...prodOptions,
-    entry: compfilePath,
-    target: 'node',
-    externals: nodeExternals(),
-    plugins: [
-      ...prodOptions.plugins,
-      new webpack.DefinePlugin({
-        'process.env': {
-          'COMP_NODE': '1'
-        }
-      })
-    ],
-    output: {
-      ...prodOptions.output,
-      library: 'CompApp',
-      libraryTarget: 'umd',
-    },
-  };
+  const compilerChild = childProcess.fork(path.join(__dirname, './compile-process'));
+  compilerChild.send({ type: 'start', value: 'run', compfilePath });
 
-  return webpack(options);
+  return new Promise((resolve, reject) => {
+    compilerChild.on('message', ({ type, value}) => {
+      if (type === 'status') {
+        if (value === 'compiled') {
+          resolve();
+        } else if (value === 'error') {
+          reject();
+        }
+      }
+    })
+  })
 }

@@ -8,31 +8,32 @@ import {
   TemplateResult,
   TemplateResultMap,
 } from './types';
-import { createCompiler } from './compile';
-import chalk from "chalk";
+import {createCompiler, createCompilerWatcher} from './compile';
+import chalk from 'chalk';
 
 const moduleDetectRegEx = /comp-dist\/union\.main\.js$/;
 
-export function createCompfileWatcher(
-  name = './compfile.js'
-): CompfileWatcher {
-  const compiler = createCompiler(path.join(process.cwd(), name));
+export function createCompfileWatcher(name = './compfile.js'): CompfileWatcher {
+  const compiler = createCompilerWatcher(path.join(process.cwd(), name));
   let compfile: Compfile | null = null;
 
-  compiler.watch({}, (err, _stats) => {
+  compiler.on('compile', (err, _stats) => {
     if (err) {
       console.log(err);
     } else {
       console.log(chalk`{green Complied for server}`);
       Object.keys(require.cache).forEach((module) => {
         if (moduleDetectRegEx.test(require.cache[module].filename)) {
-          console.log(chalk`{cyan Reloading ${require.cache[module].filename}}`);
+          console.log(
+            chalk`{cyan Reloading ${require.cache[module].filename}}`
+          );
           delete require.cache[module];
         }
       });
 
       compfile = require(path.join(process.cwd(), 'comp-dist/union.main.js'))
-        .default as Compfile;    }
+        .default as Compfile;
+    }
   });
 
   return {
@@ -45,17 +46,12 @@ export function createCompfileWatcher(
 export function getCompfile(name = './compfile.js'): Promise<Compfile> {
   const compiler = createCompiler(path.join(process.cwd(), name));
 
-  return new Promise((resolve, reject) => {
-    compiler.run((err, _stats) => {
-      if (err) {
-        return reject(err);
-      }
-      const compfile = require(path.join(
-        process.cwd(),
-        'comp-dist/union.main.js'
-      )).default as Compfile;
-      resolve(compfile);
-    });
+  return compiler.then(() => {
+    const compfile = require(path.join(
+      process.cwd(),
+      'comp-dist/union.main.js'
+    )).default as Compfile;
+    return compfile;
   });
 }
 
