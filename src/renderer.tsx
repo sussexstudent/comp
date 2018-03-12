@@ -13,7 +13,7 @@ import {
   TemplateResultMap,
 } from './types';
 
-const ENDPOINT = 'https://falmer.sussexstudent.com/graphql';
+const ENDPOINT = 'https://falmer.sussexstudent.com/graphql/';
 
 function createFreshApolloClient() {
   return new ApolloClient({
