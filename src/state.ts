@@ -25,7 +25,7 @@ export function loadSnapshot() {
 
 export function findDirtyComponents(
   next: StateSnapshot,
-  previous: StateSnapshot
+  previous: StateSnapshot,
 ): DirtyChangeset {
   const dirtyTemplates: DirtyTemplates = [];
   const dirtyPages: DirtyPages = [];

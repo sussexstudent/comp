@@ -23,7 +23,7 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
     differences.dirtyPages.length <= 0
   ) {
     console.log(
-      chalk`{red No Changes!}. Use {blue -f} to force all, {blue -p} to name pages and {blue -t for templates}`
+      chalk`{red No Changes!}. Use {blue -f} to force all, {blue -p} to name pages and {blue -t for templates}`,
     );
     return;
   }
@@ -52,11 +52,11 @@ function differencesUI(differences: DirtyChangeset, next: StateSnapshot) {
           chalk`📋  {underline Template} {blue ${name}}: {green ${
             part !== null ? part : ''
           }}.
-           {italic Paste away!}`
+           {italic Paste away!}`,
         );
       } else if (type === 'page') {
         console.log(
-          chalk`📋  {underline Page} {blue ${name}}. {italic Paste away!}`
+          chalk`📋  {underline Page} {blue ${name}}. {italic Paste away!}`,
         );
       }
     });
@@ -72,7 +72,6 @@ export default async function() {
 
   // Get the current git hash for use in the output
   git.long(async (_gitRev) => {
-
     let compfile: Compfile;
     try {
       compfile = await getCompfile();
@@ -88,7 +87,7 @@ export default async function() {
     try {
       templates = await renderTemplates(
         resolveAllTemplates(compfile),
-        compfile.assets
+        compfile.assets,
       );
 
       let contentApiPages: PageComponentMap = {};
@@ -96,7 +95,7 @@ export default async function() {
       if (compfile.contentApi) {
         const options = compfile.contentApi;
         const paths: Array<string> = await contentCache.getAllPaths(
-          compfile.contentApi
+          compfile.contentApi,
         );
         paths.forEach((path) => {
           contentApiPages[path] = options.template;
@@ -119,7 +118,7 @@ export default async function() {
 
     const differences = findDirtyComponents(
       { pages, templates },
-      staleSnapshot
+      staleSnapshot,
     );
 
     differencesUI(differences, { pages, templates });

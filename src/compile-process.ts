@@ -1,11 +1,11 @@
-import * as path from "path";
-import * as webpack from "webpack";
-import * as nodeExternals from "webpack-node-externals";
+import * as path from 'path';
+import * as webpack from 'webpack';
+import * as nodeExternals from 'webpack-node-externals';
 
 function getWebpackInstance(compfilePath: string) {
   const prodOptions = require(path.join(
     process.cwd(),
-    './config/webpack.comp.config.js'
+    './config/webpack.comp.config.js',
   ));
   const options = {
     ...prodOptions,
@@ -38,9 +38,9 @@ if (!process.send) {
       if (err) {
         console.log(err);
       } else {
-        process.send({ type: 'status', value: 'compiled' })
+        process.send({ type: 'status', value: 'compiled' });
       }
-    })
+    });
   }
 
   function run(compfilePath: string, process: any) {
@@ -49,13 +49,12 @@ if (!process.send) {
     webpack.run((err, _stats) => {
       if (err) {
         console.log(err);
-        process.send({ type: 'status', value: 'error' })
+        process.send({ type: 'status', value: 'error' });
       } else {
-        process.send({ type: 'status', value: 'compiled' })
+        process.send({ type: 'status', value: 'compiled' });
       }
-    })
+    });
   }
-
 
   process.on('message', (message) => {
     const { type, value } = message;

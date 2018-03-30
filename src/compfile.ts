@@ -8,7 +8,7 @@ import {
   TemplateResult,
   TemplateResultMap,
 } from './types';
-import {createCompiler, createCompilerWatcher} from './compile';
+import { createCompiler, createCompilerWatcher } from './compile';
 import chalk from 'chalk';
 
 const moduleDetectRegEx = /comp-dist\/union\.main\.js$/;
@@ -25,7 +25,7 @@ export function createCompfileWatcher(name = './compfile.js'): CompfileWatcher {
       Object.keys(require.cache).forEach((module) => {
         if (moduleDetectRegEx.test(require.cache[module].filename)) {
           console.log(
-            chalk`{cyan Reloading ${require.cache[module].filename}}`
+            chalk`{cyan Reloading ${require.cache[module].filename}}`,
           );
           delete require.cache[module];
         }
@@ -49,7 +49,7 @@ export function getCompfile(name = './compfile.js'): Promise<Compfile> {
   return compiler.then(() => {
     const compfile = require(path.join(
       process.cwd(),
-      'comp-dist/union.main.js'
+      'comp-dist/union.main.js',
     )).default as Compfile;
     return compfile;
   });
@@ -57,7 +57,7 @@ export function getCompfile(name = './compfile.js'): Promise<Compfile> {
 
 export function getPageComponentFromConf(
   compfile: Compfile,
-  componentPath: string
+  componentPath: string,
 ): PageComponent {
   return compfile.pages[componentPath].default;
 }
@@ -65,7 +65,7 @@ export function getPageComponentFromConf(
 export function getTemplatePartFromConf(
   compfile: Compfile,
   templateName: string,
-  part: string
+  part: string,
 ) {
   return compfile.templates[templateName][part].default;
 }
@@ -76,7 +76,7 @@ export function resolveAllPages(compfile: Compfile) {
   Object.keys(compfile.pages).forEach((componentPath) => {
     components[componentPath] = getPageComponentFromConf(
       compfile,
-      componentPath
+      componentPath,
     );
   });
 
@@ -92,7 +92,7 @@ export function resolveAllTemplates(compfile: Compfile): TemplateResultMap {
       const getPart = getTemplatePartFromConf.bind(
         null,
         compfile,
-        templateName
+        templateName,
       );
       const head = _.isString(templateConfig.head)
         ? getPart('head')
@@ -116,7 +116,7 @@ export function resolveAllTemplates(compfile: Compfile): TemplateResultMap {
         };
       } else {
         throw new Error(
-          `Either 'template' or ('templatePublic' and 'templateLoggedIn') are required. Missing from template: ${templateName}`
+          `Either 'template' or ('templatePublic' and 'templateLoggedIn') are required. Missing from template: ${templateName}`,
         );
       }
 

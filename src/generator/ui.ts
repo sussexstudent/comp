@@ -43,11 +43,11 @@ function createTwoStepMessage(msgGen: (...args: Array<any>) => string) {
 }
 
 export const savingState = createTwoStepMessage(
-  () => chalk`{white saving state file...}`
+  () => chalk`{white saving state file...}`,
 );
 
 export const renderingComponents = createTwoStepMessage(
-  () => chalk`{white rendering components to markup... }`
+  () => chalk`{white rendering components to markup... }`,
 );
 
 export function compTag() {

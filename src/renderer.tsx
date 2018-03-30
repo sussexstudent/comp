@@ -23,17 +23,20 @@ function createFreshApolloClient() {
     link: new HttpLink({
       uri: ENDPOINT,
     }),
-    ssrMode: true
+    ssrMode: true,
   });
 }
 
-export function createRenderBase(contentAPIStore: object, location: string | undefined = undefined) {
+export function createRenderBase(
+  contentAPIStore: object,
+  location: string | undefined = undefined,
+) {
   const client = new ApolloClient({
     cache: new InMemoryCache(),
     link: new HttpLink({
       uri: ENDPOINT,
     }),
-    ssrMode: true
+    ssrMode: true,
   });
 
   class RenderBase extends React.Component {
@@ -71,7 +74,11 @@ function render(
   const RenderBase = createRenderBase(remoteStore, location);
 
   process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
-  const finalElement: any = React.createElement(RenderBase, {}, React.createElement(Component, props));
+  const finalElement: any = React.createElement(
+    RenderBase,
+    {},
+    React.createElement(Component, props),
+  );
   return ReactDOM.renderToStaticMarkup(finalElement);
 }
 
@@ -79,11 +86,11 @@ export const renderHtml = (
   Html: any,
   children: any,
   assets: object,
-  other: { inject?: object, compOptions?: string } = {}
+  other: { inject?: object; compOptions?: string } = {},
 ) => {
   if (other.inject) {
-    ((global as any)).mslInject = {
-      ...(((global as any)).mslInject || {}),
+    (global as any).mslInject = {
+      ...((global as any).mslInject || {}),
       ...other.inject,
     };
   }
@@ -94,12 +101,22 @@ export const renderHtml = (
     additionalHead.push(other.compOptions);
   }
 
-  const finalElement: any = React.createElement(Html, { assets: assets, additionalHead }, children);
-  return ReactDOM.renderToStaticMarkup(finalElement)
-    .replace('{head_content}', '');
+  const finalElement: any = React.createElement(
+    Html,
+    { assets: assets, additionalHead },
+    children,
+  );
+  return ReactDOM.renderToStaticMarkup(finalElement).replace(
+    '{head_content}',
+    '',
+  );
 };
 
-export async function renderComponent(Component: any, props = {}, location: string | undefined = undefined) {
+export async function renderComponent(
+  Component: any,
+  props = {},
+  location: string | undefined = undefined,
+) {
   process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToComponent;
 
   const finalElement: any = (
@@ -119,7 +136,7 @@ export async function renderComponent(Component: any, props = {}, location: stri
 
 export function renderTemplates(
   templates: TemplateResultMap,
-  assets: any
+  assets: any,
 ): RenderedTemplateMap {
   const renderedTemplates: RenderedTemplateMap = {};
 
@@ -134,7 +151,7 @@ export function renderTemplates(
           loggedIn: true,
         },
         {},
-        HydroleafMode.RenderToString
+        HydroleafMode.RenderToString,
       ),
       templatePublic: render(
         templates[templateName].templatePublic,
@@ -143,7 +160,7 @@ export function renderTemplates(
           loggedIn: false,
         },
         {},
-        HydroleafMode.RenderToString
+        HydroleafMode.RenderToString,
       ),
     };
   });
@@ -152,7 +169,7 @@ export function renderTemplates(
 }
 
 export async function renderComponents(
-  pages: PageComponentMap
+  pages: PageComponentMap,
 ): Promise<PageResultMap> {
   const renderedPages: PageResultMap = {};
 
@@ -160,17 +177,19 @@ export async function renderComponents(
 
   const done = ui.renderingComponents();
 
-  await Promise.all(componentNames.map(async (pageName, _index) => {
-    const content = await renderComponent(
-      pages[pageName],
-      { path: pageName },
-      pageName,
-    );
-    renderedPages[pageName] = {
-      name: pageName,
-      content,
-    };
-  }));
+  await Promise.all(
+    componentNames.map(async (pageName, _index) => {
+      const content = await renderComponent(
+        pages[pageName],
+        { path: pageName },
+        pageName,
+      );
+      renderedPages[pageName] = {
+        name: pageName,
+        content,
+      };
+    }),
+  );
 
   done();
 

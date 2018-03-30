@@ -33,15 +33,12 @@ async function loadContentPathsFromApi(contentApiOptions: ContentApiOptions) {
   console.log(
     chalk`{keyword('orange') [content] {bold ${
       data.data.allPages.length
-    }} page paths loaded from content api}`
+    }} page paths loaded from content api}`,
   );
 
   return data.data.allPages
     .map((page: { path: string | null }) => {
-      if (
-        !page.path ||
-        contentApiOptions.skipPaths.indexOf(page.path) >= 0
-      ) {
+      if (!page.path || contentApiOptions.skipPaths.indexOf(page.path) >= 0) {
         return null;
       }
 

@@ -2,7 +2,7 @@ import { DirtyChangeset, StateSnapshot } from '../types';
 
 function* getTemplateChanges(
   differences: DirtyChangeset,
-  renders: StateSnapshot
+  renders: StateSnapshot,
 ) {
   for (const template of differences.dirtyTemplates) {
     const d = { type: 'template', name: template.name };
@@ -59,7 +59,7 @@ function* getPageChanges(differences: DirtyChangeset, renders: StateSnapshot) {
 
 export function* createChangesGenerator(
   differences: DirtyChangeset,
-  renders: StateSnapshot
+  renders: StateSnapshot,
 ) {
   yield* getTemplateChanges(differences, renders);
   yield* getPageChanges(differences, renders);
