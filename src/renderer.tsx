@@ -2,8 +2,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom/server';
 import * as ui from './generator/ui';
 import * as PropTypes from 'prop-types';
-import {ApolloProvider, getDataFromTree} from 'react-apollo';
-import { ApolloClient, InMemoryCache, HttpLink } from 'apollo-client-preset';
+import { ApolloProvider, getDataFromTree } from 'react-apollo';
+import { ApolloClient } from 'apollo-client'
+import { InMemoryCache } from 'apollo-cache-inmemory'
+import { HttpLink } from 'apollo-link-http'
 import { StaticRouter } from 'react-router';
 import {
   HydroleafMode,
