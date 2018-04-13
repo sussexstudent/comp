@@ -39,26 +39,6 @@ const localAssetsStub = {
   ),
 };
 
-// const localAssetStub = {
-//   main: {
-//     js: '/assets/main.js',
-//     css: '/assets/style.main.css',
-//   },
-//   productionFonts: {
-//     css: '/assets/style.productionFonts.css',
-//   },
-//   vendor: {
-//     js: '/assets/vendor.js',
-//   },
-//   lazysiz: {
-//     js: '/assets/vendor.js',
-//   },
-//   freshers: {
-//     js: '/assets/freshers.js',
-//     css: '/assets/style.freshers.css',
-//   },
-// };
-
 enum PageMode {
   Local = 'local',
   Proxy = 'proxy',
