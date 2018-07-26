@@ -103,7 +103,7 @@ export default async function() {
       }
 
       const allPages = { ...resolveAllPages(compfile), ...contentApiPages };
-      pages = await renderComponents(allPages);
+      pages = await renderComponents(allPages, compfile.providers);
     } catch (err) {
       console.log(err);
       process.exit(1);

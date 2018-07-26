@@ -25,11 +25,11 @@ const localAssetsStub = {
           {
             get(_atTarget, atName) {
               if (atName === 'js') {
-                return `/assets/${name}.js`;
+                return `/assets/${name as string}.js`;
               }
 
               if (atName === 'css') {
-                return `/assets/style.${name}.css`;
+                return `/assets/style.${name as string}.css`;
               }
             },
           },
@@ -48,7 +48,9 @@ const contentCache = createContentCache();
 
 function handleTemplaing(conf: Compfile, html: string) {
   const { window } = new jsdom.JSDOM(html);
-  const pageContentHTML = window.document.querySelector('main .Container');
+  const pageContentHTMLLegacy = window.document.querySelector('main .Container');
+  const pageContentHTMLLoki = window.document.querySelector('main .LokiContainer');
+  const pageContentHTML = pageContentHTMLLegacy ? pageContentHTMLLegacy : pageContentHTMLLoki;
   const Main = resolveAllTemplates(conf)['main']['templatePublic'];
   return renderHtml(
     conf.html,
@@ -71,7 +73,7 @@ function loadFromLocal(
 
   if (Object.hasOwnProperty.call(pages, path)) {
     const PageComponent = getPageComponentFromConf(conf, path);
-    renderComponent(PageComponent).then((componentString) => {
+    renderComponent(PageComponent, conf.providers).then((componentString) => {
       const templateName = Object.hasOwnProperty.call(PageComponent, 'template')
         ? PageComponent.template
         : 'main';
@@ -110,7 +112,7 @@ function loadFromContentApi(
 
   const PageComponent = options.template;
 
-  renderComponent(PageComponent, { path }, path).then((componentString) => {
+  renderComponent(PageComponent, conf.providers,{ path }, path).then((componentString) => {
     const templateName = 'main';
 
     const Template = resolveAllTemplates(conf)[templateName]['templatePublic'];
@@ -136,7 +138,7 @@ function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
   const conf = compfileWatcher.getCompfile();
   fetch(`https://www.sussexstudent.com/${req.originalUrl}`)
     .then((response) => {
-      const contentType = response.headers.get('Content-Type');
+      const contentType = response.headers.get('Content-Type') || '';
       if (contentType.startsWith('text')) {
         response
           .text()

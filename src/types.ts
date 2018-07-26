@@ -17,7 +17,7 @@ export interface Compfile {
   assets: {
     gitRev?: string;
   };
-
+  providers: any;
   contentApi?: ContentApiOptions;
 }
 

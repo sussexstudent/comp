@@ -3,9 +3,9 @@ import * as ReactDOM from 'react-dom/server';
 import * as ui from './generator/ui';
 import * as PropTypes from 'prop-types';
 import { ApolloProvider, getDataFromTree } from 'react-apollo';
-import { ApolloClient } from 'apollo-client'
-import { InMemoryCache } from 'apollo-cache-inmemory'
-import { HttpLink } from 'apollo-link-http'
+import { ApolloClient } from 'apollo-client';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { HttpLink } from 'apollo-link-http';
 import { StaticRouter } from 'react-router';
 import {
   HydroleafMode,
@@ -16,6 +16,7 @@ import {
 } from './types';
 
 const ENDPOINT = 'https://falmer.sussexstudent.com/graphql/';
+// const ENDPOINT = 'http://localhost:8000/graphql/';
 
 function createFreshApolloClient() {
   return new ApolloClient({
@@ -114,17 +115,20 @@ export const renderHtml = (
 
 export async function renderComponent(
   Component: any,
+  Providers: any,
   props = {},
   location: string | undefined = undefined,
 ) {
   process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToComponent;
 
   const finalElement: any = (
-    <ApolloProvider client={createFreshApolloClient()}>
-      <StaticRouter location={location} context={{}}>
-        <Component {...props} />
-      </StaticRouter>
-    </ApolloProvider>
+    <Providers>
+      <ApolloProvider client={createFreshApolloClient()}>
+        <StaticRouter location={location} context={{}}>
+          <Component {...props} />
+        </StaticRouter>
+      </ApolloProvider>
+    </Providers>
   );
 
   return getDataFromTree(finalElement).then(() => {
@@ -170,6 +174,7 @@ export function renderTemplates(
 
 export async function renderComponents(
   pages: PageComponentMap,
+  Providers: any
 ): Promise<PageResultMap> {
   const renderedPages: PageResultMap = {};
 
@@ -181,6 +186,7 @@ export async function renderComponents(
     componentNames.map(async (pageName, _index) => {
       const content = await renderComponent(
         pages[pageName],
+        Providers,
         { path: pageName },
         pageName,
       );
