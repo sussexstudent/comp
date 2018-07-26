@@ -174,7 +174,7 @@ export function renderTemplates(
 
 export async function renderComponents(
   pages: PageComponentMap,
-  Providers: any
+  Providers: any,
 ): Promise<PageResultMap> {
   const renderedPages: PageResultMap = {};
 

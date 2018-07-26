@@ -48,9 +48,15 @@ const contentCache = createContentCache();
 
 function handleTemplaing(conf: Compfile, html: string) {
   const { window } = new jsdom.JSDOM(html);
-  const pageContentHTMLLegacy = window.document.querySelector('main .Container');
-  const pageContentHTMLLoki = window.document.querySelector('main .LokiContainer');
-  const pageContentHTML = pageContentHTMLLegacy ? pageContentHTMLLegacy : pageContentHTMLLoki;
+  const pageContentHTMLLegacy = window.document.querySelector(
+    'main .Container',
+  );
+  const pageContentHTMLLoki = window.document.querySelector(
+    'main .LokiContainer',
+  );
+  const pageContentHTML = pageContentHTMLLegacy
+    ? pageContentHTMLLegacy
+    : pageContentHTMLLoki;
   const Main = resolveAllTemplates(conf)['main']['templatePublic'];
   return renderHtml(
     conf.html,
@@ -112,26 +118,30 @@ function loadFromContentApi(
 
   const PageComponent = options.template;
 
-  renderComponent(PageComponent, conf.providers,{ path }, path).then((componentString) => {
-    const templateName = 'main';
+  renderComponent(PageComponent, conf.providers, { path }, path).then(
+    (componentString) => {
+      const templateName = 'main';
 
-    const Template = resolveAllTemplates(conf)[templateName]['templatePublic'];
+      const Template = resolveAllTemplates(conf)[templateName][
+        'templatePublic'
+      ];
 
-    const page = renderHtml(
-      conf.html,
-      <Template
-        assets={localAssetsStub}
-        loggedIn={Object.hasOwnProperty.call(req.query, 'auth')}
-      />,
-      localAssetsStub,
-      {
-        inject: {
-          Content: componentString,
+      const page = renderHtml(
+        conf.html,
+        <Template
+          assets={localAssetsStub}
+          loggedIn={Object.hasOwnProperty.call(req.query, 'auth')}
+        />,
+        localAssetsStub,
+        {
+          inject: {
+            Content: componentString,
+          },
         },
-      },
-    );
-    res.send(page);
-  });
+      );
+      res.send(page);
+    },
+  );
 }
 
 function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
