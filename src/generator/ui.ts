@@ -55,5 +55,6 @@ export function compTag() {
 }
 
 export function missingCompfile() {
+  console.log(process.cwd());
   console.log(chalk`{red Can't find compfile.js here!}`);
 }
