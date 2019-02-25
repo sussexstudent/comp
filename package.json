@@ -60,7 +60,7 @@
     "react-dom": "16.8.3",
     "react-router": "^4.2.0",
     "react-tree-walker": "^4.3.0",
-    "typescript": "^3.0.1",
+    "typescript": "^3.3.3333",
     "webpack": "^4.17.1",
     "webpack-node-externals": "^1.7.2"
   },
