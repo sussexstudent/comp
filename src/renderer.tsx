@@ -14,6 +14,7 @@ import {
   RenderedTemplateMap,
   TemplateResultMap,
 } from './types';
+import { ApolloProvider as APHooks } from 'react-apollo-hooks';
 
 const ENDPOINT = 'https://falmer.sussexstudent.com/graphql/';
 // const ENDPOINT = 'http://localhost:8000/graphql/';
@@ -54,9 +55,11 @@ export function createRenderBase(
     render() {
       return (
         <ApolloProvider client={client}>
-          <StaticRouter location={location} context={{}}>
-            {this.props.children}
-          </StaticRouter>
+          <APHooks client={client}>
+            <StaticRouter location={location} context={{}}>
+              {this.props.children}
+            </StaticRouter>
+          </APHooks>
         </ApolloProvider>
       );
     }

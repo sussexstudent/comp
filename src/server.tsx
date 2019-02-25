@@ -171,7 +171,7 @@ function loadFromSite(compfileWatcher: CompfileWatcher, req: any, res: any) {
 
 function handlePage(compfileWatcher: CompfileWatcher, req: any, res: any) {
   if (!compfileWatcher.getCompfile()) {
-    res.send('Compfile has not finished compiling yet!');
+    res.status(503).send('Compfile has not finished compiling yet!');
     return;
   }
   const compfile = compfileWatcher.getCompfile();

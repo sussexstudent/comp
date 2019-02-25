@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { generator } from './index';
+import { deploy } from './index';
 
-generator();
+deploy();

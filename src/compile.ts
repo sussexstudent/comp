@@ -34,8 +34,10 @@ export function createCompiler(compfilePath: string) {
     compilerChild.on('message', ({ type, value }) => {
       if (type === 'status') {
         if (value === 'compiled') {
+          compilerChild.kill();
           resolve();
         } else if (value === 'error') {
+          compilerChild.kill();
           reject();
         }
       }
