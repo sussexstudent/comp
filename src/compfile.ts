@@ -3,8 +3,6 @@ import * as _ from 'lodash';
 import {
   Compfile,
   CompfileWatcher,
-  PageComponent,
-  PageComponentMap,
   TemplateResult,
   TemplateResultMap,
 } from './types';
@@ -55,32 +53,12 @@ export function getCompfile(name = './compfile.js'): Promise<Compfile> {
   });
 }
 
-export function getPageComponentFromConf(
-  compfile: Compfile,
-  componentPath: string,
-): PageComponent {
-  return compfile.pages[componentPath].default;
-}
-
 export function getTemplatePartFromConf(
   compfile: Compfile,
   templateName: string,
   part: string,
 ) {
   return compfile.templates[templateName][part].default;
-}
-
-export function resolveAllPages(compfile: Compfile) {
-  const components: PageComponentMap = {};
-
-  Object.keys(compfile.pages).forEach((componentPath) => {
-    components[componentPath] = getPageComponentFromConf(
-      compfile,
-      componentPath,
-    );
-  });
-
-  return components;
 }
 
 export function resolveAllTemplates(compfile: Compfile): TemplateResultMap {
@@ -129,9 +107,4 @@ export function resolveAllTemplates(compfile: Compfile): TemplateResultMap {
   }
 
   return templates;
-}
-
-export function validateCompfile(compfile: Compfile) {
-  resolveAllPages(compfile);
-  resolveAllTemplates(compfile);
 }

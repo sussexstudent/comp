@@ -1,16 +1,7 @@
-export interface ContentApiOptions {
-  endpoint: string;
-  template: any;
-  transformPath?(path: string): string;
-  skipPaths: Array<string>;
-}
-
 export interface Compfile {
+  skin: string;
   root: string;
   html: any;
-  pages: {
-    [path: string]: any;
-  };
   templates: {
     [name: string]: any;
   };
@@ -18,7 +9,6 @@ export interface Compfile {
     gitRev?: string;
   };
   providers: any;
-  contentApi?: ContentApiOptions;
 }
 
 export interface CompfileWatcher {
@@ -49,42 +39,6 @@ export interface RenderedTemplate {
 
 export interface RenderedTemplateMap {
   [templateName: string]: RenderedTemplate;
-}
-
-export type PageComponent = any;
-
-export interface PageComponentMap {
-  [pageName: string]: PageComponent;
-}
-
-export interface PageResult {
-  name: string;
-  content: string;
-}
-
-export interface PageResultMap {
-  [path: string]: PageResult;
-}
-
-export type StateSnapshot = {
-  pages: PageResultMap;
-  templates: RenderedTemplateMap;
-};
-
-export type DirtyTemplates = Array<{
-  name: string;
-  isNew?: boolean;
-  dirtyHead?: boolean;
-  dirtyTemplateLoggedIn?: boolean;
-  dirtyTemplatePublic?: boolean;
-  templatesCombined: boolean;
-}>;
-
-export type DirtyPages = Array<string>;
-
-export interface DirtyChangeset {
-  dirtyTemplates: DirtyTemplates;
-  dirtyPages: DirtyPages;
 }
 
 export enum HydroleafMode {

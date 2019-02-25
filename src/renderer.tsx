@@ -1,85 +1,22 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/server';
-import * as ui from './generator/ui';
-import * as PropTypes from 'prop-types';
-import { ApolloProvider, getDataFromTree } from 'react-apollo';
-import { ApolloClient } from 'apollo-client';
-import { InMemoryCache } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
-import { StaticRouter } from 'react-router';
 import {
   HydroleafMode,
-  PageComponentMap,
-  PageResultMap,
   RenderedTemplateMap,
   TemplateResultMap,
 } from './types';
-import { ApolloProvider as APHooks } from 'react-apollo-hooks';
-
-const ENDPOINT = 'https://falmer.sussexstudent.com/graphql/';
-// const ENDPOINT = 'http://localhost:8000/graphql/';
-
-function createFreshApolloClient() {
-  return new ApolloClient({
-    cache: new InMemoryCache(),
-    link: new HttpLink({
-      uri: ENDPOINT,
-    }),
-    ssrMode: true,
-  });
-}
-
-export function createRenderBase(
-  contentAPIStore: object,
-  location: string | undefined = undefined,
-) {
-  const client = new ApolloClient({
-    cache: new InMemoryCache(),
-    link: new HttpLink({
-      uri: ENDPOINT,
-    }),
-    ssrMode: true,
-  });
-
-  class RenderBase extends React.Component {
-    static childContextTypes = {
-      contentAPI: PropTypes.object.isRequired,
-    };
-
-    getChildContext() {
-      return {
-        contentAPI: contentAPIStore,
-      };
-    }
-
-    render() {
-      return (
-        <ApolloProvider client={client}>
-          <APHooks client={client}>
-            <StaticRouter location={location} context={{}}>
-              {this.props.children}
-            </StaticRouter>
-          </APHooks>
-        </ApolloProvider>
-      );
-    }
-  }
-
-  return RenderBase;
-}
 
 function render(
   Component: any,
   props: object,
-  remoteStore: any,
+  Providers: any,
   hydroLeafRenderMode: HydroleafMode,
-  location: string | undefined = undefined,
+  // location: string | undefined = undefined,
 ) {
-  const RenderBase = createRenderBase(remoteStore, location);
 
   process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
   const finalElement: any = React.createElement(
-    RenderBase,
+    Providers,
     {},
     React.createElement(Component, props),
   );
@@ -116,34 +53,10 @@ export const renderHtml = (
   );
 };
 
-export async function renderComponent(
-  Component: any,
-  Providers: any,
-  props = {},
-  location: string | undefined = undefined,
-) {
-  process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToComponent;
-
-  const finalElement: any = (
-    <Providers>
-      <ApolloProvider client={createFreshApolloClient()}>
-        <StaticRouter location={location} context={{}}>
-          <Component {...props} />
-        </StaticRouter>
-      </ApolloProvider>
-    </Providers>
-  );
-
-  return getDataFromTree(finalElement).then(() => {
-    process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToString;
-
-    return ReactDOM.renderToStaticMarkup(finalElement as any);
-  });
-}
-
 export function renderTemplates(
   templates: TemplateResultMap,
   assets: any,
+  Providers: any,
 ): RenderedTemplateMap {
   const renderedTemplates: RenderedTemplateMap = {};
 
@@ -157,7 +70,7 @@ export function renderTemplates(
           assets,
           loggedIn: true,
         },
-        {},
+        Providers,
         HydroleafMode.RenderToString,
       ),
       templatePublic: render(
@@ -166,41 +79,11 @@ export function renderTemplates(
           assets,
           loggedIn: false,
         },
-        {},
+        Providers,
         HydroleafMode.RenderToString,
       ),
     };
   });
 
   return renderedTemplates;
-}
-
-export async function renderComponents(
-  pages: PageComponentMap,
-  Providers: any,
-): Promise<PageResultMap> {
-  const renderedPages: PageResultMap = {};
-
-  const componentNames = Object.keys(pages);
-
-  const done = ui.renderingComponents();
-
-  await Promise.all(
-    componentNames.map(async (pageName, _index) => {
-      const content = await renderComponent(
-        pages[pageName],
-        Providers,
-        { path: pageName },
-        pageName,
-      );
-      renderedPages[pageName] = {
-        name: pageName,
-        content,
-      };
-    }),
-  );
-
-  done();
-
-  return renderedPages;
 }

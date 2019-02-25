@@ -1,37 +1,4 @@
 import chalk from 'chalk';
-import { DirtyChangeset } from '../types';
-
-export function renderDifferencesList(differences: DirtyChangeset) {
-  console.log(chalk`{underline Templates}`);
-  differences.dirtyTemplates.forEach((template) => {
-    let changes;
-    if (template.isNew) {
-      changes = 'NEW';
-    } else {
-      changes = [];
-      if (template.dirtyHead) {
-        changes.push('<head>');
-      }
-
-      if (template.dirtyTemplatePublic) {
-        changes.push('Public template');
-      }
-
-      if (template.dirtyTemplateLoggedIn) {
-        changes.push('Logged in template');
-      }
-
-      changes = `${changes.join(', ')} changed`;
-    }
-    console.log(chalk`• {blue ${template.name}} - {green ${changes}}`);
-  });
-
-  console.log(chalk`\n{underline Pages}`);
-
-  differences.dirtyPages.forEach((page) => {
-    console.log(chalk`• {blue ${page}}`);
-  });
-}
 
 function createTwoStepMessage(msgGen: (...args: Array<any>) => string) {
   return (...args: Array<any>) => {
@@ -44,10 +11,6 @@ function createTwoStepMessage(msgGen: (...args: Array<any>) => string) {
 
 export const savingState = createTwoStepMessage(
   () => chalk`{white saving state file...}`,
-);
-
-export const renderingComponents = createTwoStepMessage(
-  () => chalk`{white rendering components to markup... }`,
 );
 
 export function compTag() {
