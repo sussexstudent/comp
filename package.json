@@ -1,6 +1,6 @@
 {
   "name": "@ussu/comp",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "main": "lib/src/index.js",
   "repository": "https://github.com/sussexstudent/comp",
   "license": "MIT",
