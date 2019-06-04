@@ -40,8 +40,3 @@ export interface RenderedTemplate {
 export interface RenderedTemplateMap {
   [templateName: string]: RenderedTemplate;
 }
-
-export enum HydroleafMode {
-  RenderToString = 'RENDER_TO_STRING',
-  RenderToComponent = 'RENDER_TO_COMPONENT',
-}

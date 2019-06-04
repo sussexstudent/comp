@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/server';
 import {
-  HydroleafMode,
   RenderedTemplateMap,
   TemplateResultMap,
 } from './types';
@@ -10,11 +9,8 @@ function render(
   Component: any,
   props: object,
   Providers: any,
-  hydroLeafRenderMode: HydroleafMode,
   // location: string | undefined = undefined,
 ) {
-
-  process.env['HYDROLEAF_MODE'] = hydroLeafRenderMode;
   const finalElement: any = React.createElement(
     Providers,
     {},
@@ -71,7 +67,6 @@ export function renderTemplates(
           loggedIn: true,
         },
         Providers,
-        HydroleafMode.RenderToString,
       ),
       templatePublic: render(
         templates[templateName].templatePublic,
@@ -80,7 +75,6 @@ export function renderTemplates(
           loggedIn: false,
         },
         Providers,
-        HydroleafMode.RenderToString,
       ),
     };
   });

@@ -4,14 +4,12 @@ import { renderTemplates } from './renderer';
 import { getCompfile, resolveAllTemplates } from './compfile';
 import {
   Compfile,
-  HydroleafMode
 } from './types';
 import { writeFile } from "fs-extra";
 
 
 export default async function() {
   ui.compTag();
-  process.env['HYDROLEAF_MODE'] = HydroleafMode.RenderToString;
   let compfile: Compfile;
   try {
     compfile = await getCompfile();
