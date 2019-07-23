@@ -1,3 +1,7 @@
+**comp has moved to our website monorepo, see [sussexstudent/website/packages/comp](https://github.com/sussexstudent/website/tree/master/packages/comp)**
+
+---
+
 # comp
 **Currently tightly coupled to our stuff. Docs to be added.*
 
